@@ -20,9 +20,9 @@ L_ij = np.array([
     [3*d, 2*d, d, 0]
 ])  # Distance matrix
 
-def equilibrium_equations(z):
-    f = np.zeros(4)
-    df_dz = np.zeros((4,4))
+def equilibrium_equations(z,u):
+    r = np.zeros(4)
+    dr_dz = np.zeros((4,4))
 
     for i in range(4):
         coupling_force = 0
@@ -32,26 +32,33 @@ def equilibrium_equations(z):
                 dz = z[i] - z[j]
                 denominator = L_ij[i,j]*(L_ij[i, j]**2 - dz**2)
                 coupling_force += (dz / denominator)
-                d_coupling_force += (denominator+2*L_ij[i,j]*dz**2)/(denominator**2)
-        fi = alpha*coupling_force
-        dfi_dzi = alpha * d_coupling_force
-        dfi_dzj = -alpha * d_coupling_force
-        f[i] = fi
-        df_dz[i, i] = dfi_dzi
-        for j in range(4):
-            if i != j:
-                df_dz[i, j] = dfi_dzj
+                d_coupling_force += ((L_ij[i, j]**2 - dz**2)-2*dz**2)/(denominator*(L_ij[i, j]**2 - dz**2))
+        ri = u[i] + alpha*coupling_force #confrim once 
+        dri_dzi = alpha * d_coupling_force
+        dri_dzj = -alpha * d_coupling_force
+        r[i] = ri
+        if i == j:
+            dr_dz[i, i] = dri_dzi          
+        if i != j:
+            dr_dz[i, j] = dri_dzj
 
-    return (f, df_dz)
+    return (r, dr_dz)
 
-max_iter = 10
-z_eq = np.zeros(4)
-z0 = np.array([1, 0, 0, 0])
+######################################################
+# Main code
+######################################################
+
+max_iter = 10 #int(5e2)
+#stepsize = 0.01
+z_eq = np.zeros(4) #np.zeros((4, max_iters))
+z0 = np.array([0.5, 0, -0.5, 0])
+u = np.array([0, 0, 0, 0])
 z_eq = z0
 
 for kk in range(max_iter):
-    f, df_dz = equilibrium_equations(z_eq)
-    z_eq = z_eq - np.linalg.inv(df_dz) @ f
+    r, dr_dz = equilibrium_equations(z_eq,u)
+    #direction = np.linalg.inv(dr_dz) @ r
+    z_eq = z_eq - np.linalg.inv(dr_dz) @ r
     print("Iteration: ", kk, "z_eq: ", z_eq)
 
 print("Final: ",z_eq)
