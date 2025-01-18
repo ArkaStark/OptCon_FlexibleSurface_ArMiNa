@@ -20,10 +20,10 @@ def flexible_surface_dynamics(x, u):
     m = [0.2, 0.3, 0.2, 0.3]
     d = 0.25
     L_ij = np.array([
-        [0, d, 2*d, 3*d],
-        [d, 0, d, 2*d],
-        [2*d, d, 0, d],
-        [3*d, 2*d, d, 0]
+        [d, 0, d, 2*d, 3*d, 4*d],
+        [2*d, d, 0, d, 2*d, 3*d],
+        [3*d, 2*d, d, 0, d, 2*d],
+        [4*d, 3*d, 2*d, d, 0, d]
     ])  # Distance matrix
 
     # Initialize variables
@@ -37,7 +37,9 @@ def flexible_surface_dynamics(x, u):
     z_ddot = np.zeros(4)
     for i in range(4):
         coupling_force = 0
-        for j in range(4):
+        for j in range(6):
+            if j == 5 or j == 0:
+                z[j] = 0 
             if i != j:
                 dz = z[i] - z[j]
                 denominator = L_ij[i, j] * (L_ij[i, j]**2 - dz**2)
@@ -60,12 +62,12 @@ def flexible_surface_dynamics(x, u):
 # Example usage
 if __name__ == "__main__":
     # Initial state: [positions, velocities]
-    x0 = np.array([0, 0, 0, 0, 0, 0, 0, 0])
+    x = np.array([0, 0, 0, 0, 0, 0, 0, 0])
     # Inputs for actuators p2 and p4
     u = np.array([1.0, 1.0])  
 
     # Simulate for 10 time steps
-    x_next = x0
+    x_next = x
     print("Initial state:", x_next)
     for kk in range(10):
         x_next = flexible_surface_dynamics(x_next, u)

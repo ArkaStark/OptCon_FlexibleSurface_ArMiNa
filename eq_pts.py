@@ -31,16 +31,18 @@ def equilibrium_equations(z,u):
             if i != j:
                 dz = z[i] - z[j]
                 denominator = L_ij[i,j]*(L_ij[i, j]**2 - dz**2)
+                print(denominator)
                 coupling_force += (dz / denominator)
                 d_coupling_force += ((L_ij[i, j]**2 - dz**2)-2*dz**2)/(denominator*(L_ij[i, j]**2 - dz**2))
         ri = u[i] + alpha*coupling_force #confrim once 
         dri_dzi = alpha * d_coupling_force
         dri_dzj = -alpha * d_coupling_force
         r[i] = ri
-        if i == j:
-            dr_dz[i, i] = dri_dzi          
-        if i != j:
-            dr_dz[i, j] = dri_dzj
+        for j in range(4):
+            if i == j:
+                dr_dz[i, i] = dri_dzi          
+            if i != j:
+                dr_dz[i, j] = dri_dzj
 
     return (r, dr_dz)
 
@@ -51,8 +53,8 @@ def equilibrium_equations(z,u):
 max_iter = 10 #int(5e2)
 #stepsize = 0.01
 z_eq = np.zeros(4) #np.zeros((4, max_iters))
-z0 = np.array([0.5, 0, -0.5, 0])
-u = np.array([0, 0, 0, 0])
+z0 = np.array([0, 0, 0, 0])
+u = np.array([0, 0.2, 0, 0])
 z_eq = z0
 
 for kk in range(max_iter):
