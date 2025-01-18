@@ -1,11 +1,14 @@
 from sympy import symbols, Matrix, Function, diff
+import numpy as np
 
 # Define symbolic variables
 t = symbols('t')  # Time variable
 dt = symbols('dt')  # Time step for discretization
 
+
 # State variables
-z = Matrix([Function(f'z{i+1}')(t) for i in range(4)])  # Positions [z1, z2, z3, z4]
+z = Matrix([0, 0, 0, 0, 0, 0, 0, 0])  # Positions [z0, z1, z2, z3, z4, z5]
+#z[0], z[5] = 0
 z_dot = Matrix([diff(z[i], t) for i in range(4)])       # Velocities [z1_dot, z2_dot, z3_dot, z4_dot]
 
 # Parameters
@@ -19,31 +22,48 @@ Lij = Matrix([
         [3*d, 2*d, d, 0, d, 2*d],
         [4*d, 3*d, 2*d, d, 0, d]
 ])  # Distance matrix
-
+Lij.subs(d, 0.25)
 # Actuator inputs
 u = Matrix([symbols('u2'), symbols('u4')])
-F = Matrix([0, u[0], 0, u[1]])  # Force vector
+F = Matrix([0, 0.1, 0, -0.1])  # Force vector
+#F.subs(u[0]=0.1, u[1]=-0.1)
 
-# Coupling forces and accelerations
-z_ddot = Matrix.zeros(4, 1)
-for i in range(4):
-    coupling_force = 0
-    for j in range(4):
-        if i != j:
-            dz = z[i] - z[j]
-            denominator = Lij[i, j] * (Lij[i, j]**2 - dz**2)
-            coupling_force += dz / denominator
+def flexible_surface_dynamics(z, F):
 
-    # Compute acceleration for point i
-    z_ddot[i] = (1 / m[i]) * (F[i] - alpha * coupling_force - c * z_dot[i])
+    
+   
+    # Coupling forces and accelerations
+    z_ddot = Matrix.zeros(4, 1)
+    for i in range(4):
+        coupling_force = 0
+        for j in range(6):
+            if i != j:
+                dz = z[i] - z[j]
+                denominator = Lij[i, j] * (Lij[i, j]**2 - dz**2)
+                coupling_force += dz / denominator
+                
 
-# Discretize dynamics using Euler integration
-z_next = z + dt * z_dot
-z_dot_next = z_dot + dt * z_ddot
+        # Compute acceleration for point i
+        z_ddot[i] = (1 / m[i]) * (F[i] - alpha * coupling_force - c * z_dot[i])
 
-# Combine into the next state vector
-x_next = Matrix.vstack(z_next, z_dot_next)
+    # Discretize dynamics using Euler integration
+    z_next = z + dt * z_dot
+    
+    z_dot_next = z_dot + dt * z_ddot
 
-# Display symbolic expressions
-print("Symbolic next state vector:")
-print(x_next)
+    # Combine into the next state vector
+    x_next = Matrix.vstack(z_next, z_dot_next)
+    return x_next
+
+# Example usage
+if __name__ == "__main__":
+    
+   
+    # Simulate for 10 time steps
+    x_next = flexible_surface_dynamics(z,F)
+    print("Initial state:", x_next)
+    for kk in range(10):
+        x_next = flexible_surface_dynamics(x_next, u)
+        print(f"Step {kk + 1}: Next state = {x_next}")
+
+
