@@ -1,4 +1,5 @@
 import numpy as np
+from sympy import symbols, Matrix, diff, solve
 
 dt = 1e-3
 
