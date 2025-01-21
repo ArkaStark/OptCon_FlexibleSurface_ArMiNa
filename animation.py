@@ -15,7 +15,7 @@ def animate(timesteps=100):
 
     # Initial state and input
     x = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    u = np.array([200, -200])
+    u = np.array([2000, 2000])
 
     # Simulate the system
     states = [x]

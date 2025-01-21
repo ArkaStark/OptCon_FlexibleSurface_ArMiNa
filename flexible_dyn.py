@@ -22,11 +22,11 @@ def flexible_surface_dynamics(x, u):
     m = [0.2, 0.3, 0.2, 0.3]    # To Check
     d = 0.25
     L_ij = np.array([
-        [0, d, 2*d, 3*d],
-        [d, 0, d, 2*d],
-        [2*d, d, 0, d],
-        [3*d, 2*d, d, 0]
-    ])  # Distance matrix
+        [0, d, 2*d, 3*d, d, 4*d],
+        [d, 0, d, 2*d, 2*d, 3*d],
+        [2*d, d, 0, d, 3*d, 2*d],
+        [3*d, 2*d, d, 0, 4*d, d]
+    ])  # Distance matrix (with fixed points)
     # neighbors = params['neighbors']  # Neighbor sets for each point
 
     # Initialize variables
@@ -38,11 +38,14 @@ def flexible_surface_dynamics(x, u):
     F[1] = u[0]  # u2
     F[3] = u[1]  # u4
 
+    z = np.array(list(z)+[0, 0])   # Add the fixed points
+    z_dot = np.array(list(z_dot)+[0, 0])  # Add the fixed points
+
     # Compute accelerations
     z_ddot = np.zeros(4)
     for i in range(4):
         coupling_force = 0
-        for j in range(4):
+        for j in range(6):
             if i == j:
                 continue
             dz = z[i] - z[j]
@@ -52,8 +55,8 @@ def flexible_surface_dynamics(x, u):
         z_ddot[i] = (1 / m[i]) * (F[i] - alpha * coupling_force - c * z_dot[i])
 
     # Discretize dynamics
-    z_next = z + dt * z_dot
-    z_dot_next = z_dot + dt * z_ddot
+    z_next = z[:4] + dt * z_dot[:4]
+    z_dot_next = z_dot[:4] + dt * z_ddot
 
     # Combine into next state vector
     x_next = np.hstack((z_next, z_dot_next))
@@ -140,7 +143,7 @@ x0 = np.array([0, 0, 0, 0, 0, 0, 0, 0])  # Initial positions and velocities
 u = np.array([100, -100])  # Inputs for p2 and p4
 x_next = x0
 
-timesteps=2
+timesteps=5
 x_next_alt = []
 # Compute next state
 for kk in range(timesteps):
