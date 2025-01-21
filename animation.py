@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from flexible_dyn import flexible_surface_dynamics as dynamics
+from flexible_dyn import flexible_surface_dynamics_symbolic_filled as dynamics
 
 def animate(timesteps=100):
 
