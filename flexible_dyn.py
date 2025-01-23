@@ -122,6 +122,7 @@ def flexible_surface_dynamics_symbolic():
 
     return x_next_sym_filled
 
+
 def flexible_surface_dynamics_symbolic_filled(x, u):
     x_next_sym_filled = flexible_surface_dynamics_symbolic()
     x_next = x_next_sym_filled.subs({
@@ -139,25 +140,35 @@ def flexible_surface_dynamics_symbolic_filled(x, u):
 
     return list(x_next)
 
-# Example usage
-# params = {
-#     'alpha': 1.0,
-#     'c': 0.1,
-#     'm': [1.0, 1.0, 1.0, 1.0],
-#     'd': 1.0,
-#     'L_ij': np.array([
-#         [0, 1, 0, 0],
-#         [1, 0, 1, 0],
-#         [0, 1, 0, 1],
-#         [0, 0, 1, 0]
-#     ]),
-#     'neighbors': {
-#         0: [1],
-#         1: [0, 2],
-#         2: [1, 3],
-#         3: [2]
-#     }
-# }
+# sp.pprint(flexible_surface_dynamics_symbolic_filled([1, 0, 0, 0, 0, 0, 0, 0], [0, 0]))    
+
+def dynamics_grad_symbolic():
+    z = sp.Matrix(sp.symbols('z1:5'))  # z1, z2, z3, z4
+    x_next_sym_filled = flexible_surface_dynamics_symbolic()
+    dyn_grad = x_next_sym_filled[4:, :].jacobian(z)
+
+    return dyn_grad
+
+# sp.pprint(dynamics_grad_symbolic().shape)
+
+def dynamics_grad_filled(x, u):
+    dyn_grad = dynamics_grad_symbolic()
+    dyn_grad_filled = dyn_grad.subs({
+        'z1': x[0],
+        'z2': x[1],
+        'z3': x[2],
+        'z4': x[3],
+        'dot_z1': x[4],
+        'dot_z2': x[5],
+        'dot_z3': x[6],
+        'dot_z4': x[7],
+        'F2': u[0],
+        'F4': u[1]
+    })
+
+    return np.array(dyn_grad_filled).astype(np.float64)
+
+# sp.pprint(dynamics_grad_filled([0, 0, 0, 0, 0, 0, 0, 0], [100, 100]))
 
 def test():
     # Initial state and input
