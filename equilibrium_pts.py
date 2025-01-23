@@ -3,24 +3,26 @@ import matplotlib.pyplot as plt
 from flexible_dyn import flexible_surface_dynamics_symbolic_filled as dynamics
 from flexible_dyn import dynamics_grad_filled as dynamics_grad
 
-def find_equilibrium_points(u1, u2):
+def find_equilibrium_points(z_init, u, step_size=1, max_iter=100):
     # Initial state and input
-    max_iter = 100
-    z0 = np.array([0, 0, 0, 0])
-    z_eq = z0
 
+    z_eq = z_init
+    tolerance = 1e-6
 
     for kk in range(max_iter):
         x = np.append(z_eq, [0, 0, 0, 0])
-        f = dynamics(x, np.array([u1, u2]))[4:]
-        df_dz = dynamics_grad(x, np.array([u1, u2]))
+        f = dynamics(x, u)[4:]
+        df_dz = dynamics_grad(x, u)
 
-        # print(np.linalg.inv(df_dz) @ f)
-        if abs(np.sum(np.linalg.inv(df_dz) @ f)) < 1e-8:
+        try:
+            delta_z = - step_size * np.linalg.pinv(df_dz) @ f
+            z_eq = z_eq + delta_z
+        except np.linalg.LinAlgError:
+            print("Singular matrix at iteration: ", kk)
             break
-
-        z_eq = z_eq - np.linalg.inv(df_dz) @ f
-        print("Iteration: ", kk, "z_eq: ", z_eq)
+        if abs(np.sum(delta_z)) < tolerance:
+            print(f"Converged after {kk} iterations")
+            break
 
     return z_eq
 
@@ -44,9 +46,14 @@ def plot_eq_pts(z_eq1, z_eq2):
     plt.grid()
     plt.show()
 
-z_eq1 = find_equilibrium_points(-1000, -500)
-z_eq2 = find_equilibrium_points(200, -200)
 
-print("Equilibrium point 1: ", z_eq1)
-print("Equilibrium point 2: ", z_eq2)
-plot_eq_pts(z_eq1, z_eq2)
+def test():
+    z0 = [0, 0, 0, 0]
+    z_eq1 = find_equilibrium_points(z0, [-1000, -500])
+    z_eq2 = find_equilibrium_points(z0, [200, -200])
+
+    print("Equilibrium point 1: ", z_eq1)
+    print("Equilibrium point 2: ", z_eq2)
+    plot_eq_pts(z_eq1, z_eq2)
+
+# test()
