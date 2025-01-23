@@ -53,7 +53,7 @@ def equilibrium_equations(z):
     return residuals
 
 # Initial guess for equilibrium
-z_init = np.array([0.07, 0.08, -0.09, 0.015])  # Modify based on expected equilibrium
+z_init = np.array([0.05, 0.2, -0.05, -0.2])  # Modify based on expected equilibrium
 
 # Solve using scipy.optimize.root
 solution = root(equilibrium_equations, z_init)

@@ -1,5 +1,6 @@
 import numpy as np
 import sympy as sp
+import cvxpy as cvx
 
 dt = 1e-4
 
@@ -124,7 +125,8 @@ def flexible_surface_dynamics_symbolic():
 
 def flexible_surface_dynamics_symbolic_filled(x, u):
     x_next_sym_filled = flexible_surface_dynamics_symbolic()
-    x_next = x_next_sym_filled.subs({
+    dfx = grad_wrt_x_and_u()
+    values = {
         'z1': x[0],
         'z2': x[1],
         'z3': x[2],
@@ -135,9 +137,26 @@ def flexible_surface_dynamics_symbolic_filled(x, u):
         'dot_z4': x[7],
         'F2': u[0],
         'F4': u[1]
-    })
+    }
+    x_next = x_next_sym_filled.subs(values)
+    dfxeq, dfueq = grad_wrt_x_and_u()
+    dfx = dfxeq.subs(values)
+    dfu = dfueq.subs(values)
+    #print(dfx)
+    return list(x_next),list(dfx), list(dfu)
 
-    return list(x_next)
+def grad_wrt_x_and_u():
+    x_next_sym_filled = flexible_surface_dynamics_symbolic()
+    # Define symbolic variables for state and input
+    z = sp.Matrix(sp.symbols('z1 z2 z3 z4'))  # Positions
+    z_dot = sp.Matrix(sp.symbols('dot_z1 dot_z2 dot_z3 dot_z4'))  # Velocities
+    x = sp.Matrix.vstack(z, z_dot)  # State vector
+    u = sp.Matrix(sp.symbols('F2 F4'))  # Input vector (forces applied to z2 and z4)
+
+    grad_wrt_x = x_next_sym_filled.jacobian(x)
+    grad_wrt_u = x_next_sym_filled.jacobian(u)
+    #print(grad_wrt_x)
+    return grad_wrt_x, grad_wrt_u
 
 # Example usage
 # params = {
@@ -159,18 +178,22 @@ def flexible_surface_dynamics_symbolic_filled(x, u):
 #     }
 # }
 
+
 def test():
     # Initial state and input
     x0 = np.array([0, 0, 0, 0, 0, 0, 0, 0])  # Initial positions and velocities
-    u = np.array([100, 100])  # Inputs for p2 and p4
+    u = np.array([0.1, 0.1])  # Inputs for p2 and p4
     x_next = x0
     x_next_sym = x0
-
+  
     # Compute next state
     for kk in range(2):
         x_next = flexible_surface_dynamics(x_next, u)
-        x_next_sym = flexible_surface_dynamics_symbolic_filled(x_next_sym, u)
+        x_next_sym, dfx, dfu = flexible_surface_dynamics_symbolic_filled(x_next_sym, u)
         print("Symbolic dynamics filled:", x_next_sym)
         print("Next state:", x_next)
+        print("A matrix", dfx)
+        print("B matrix", dfu)
 
-# test()
+#grad_wrt_x()
+test()
