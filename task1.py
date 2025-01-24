@@ -1,6 +1,7 @@
 import numpy as np
 import equilibrium_pts as eq
-import reference_trajectory as ref
+import trajectory as traj
+from optimal_controller import newton_optimal_control as noc
 
 def main():
     z0 = [0, 0, 0, 0]
@@ -15,9 +16,18 @@ def main():
 
     print("Generating trajectory between equilibrium points...")
 
-    x_ref, u_ref = ref.generate_trajectory(z_eq1, z_eq2, u_eq1, u_eq2)
-    print("x_ref:\n", x_ref)
-    print("u_ref:\n", u_ref)
-    ref.plot_trajectory(x_ref, u_ref)
+    tf = 0.01
+    dt = 1e-4
+
+    z_ref, u_ref = traj.generate_trajectory(z_eq1, z_eq2, u_eq1, u_eq2, t_f=tf, dt=dt)
+    # print("x_ref:\n", z_ref)
+    # print("u_ref:\n", u_ref)
+    traj.plot_trajectory(z_ref, u_ref, t_f=tf, dt=dt)
+
+    x_ref = np.append(z_ref, np.zeros((4, z_ref.shape[1])), axis=0)
+
+    timestep = x_ref.shape[1]
+    x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timestep, task=1)
+    traj.plot_opt_trajectory(x_gen, u_gen, x_ref, u_ref, t_f=tf, dt=dt)
 
 main()

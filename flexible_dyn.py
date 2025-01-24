@@ -170,6 +170,47 @@ def dynamics_grad_filled(x, u):
 
 # sp.pprint(dynamics_grad_filled([0, 0, 0, 0, 0, 0, 0, 0], [100, 100]))
 
+def grad_wrt_xu_sym():
+    x_next_sym_filled = flexible_surface_dynamics_symbolic()
+    # Define symbolic variables for state and input
+    z = sp.Matrix(sp.symbols('z1 z2 z3 z4'))  # Positions
+    z_dot = sp.Matrix(sp.symbols('dot_z1 dot_z2 dot_z3 dot_z4'))  # Velocities
+    x = sp.Matrix.vstack(z, z_dot)  # State vector
+    u = sp.Matrix(sp.symbols('F2 F4'))  # Input vector (forces applied to z2 and z4)
+
+    grad_wrt_x = x_next_sym_filled.jacobian(x)
+    grad_wrt_u = x_next_sym_filled.jacobian(u)
+    # print(grad_wrt_x.shape, grad_wrt_u.shape)
+    return grad_wrt_x, grad_wrt_u
+
+def grad_wrt_xu(x, u):
+    values = {
+        'z1': x[0],
+        'z2': x[1],
+        'z3': x[2],
+        'z4': x[3],
+        'dot_z1': x[4],
+        'dot_z2': x[5],
+        'dot_z3': x[6],
+        'dot_z4': x[7],
+        'F2': u[0],
+        'F4': u[1],
+        'm1': 0.2,
+        'm2': 0.3,
+        'm3': 0.2,
+        'm4': 0.3,
+        'alpha': 128*0.2,
+        'c': 0.1,
+        'd': 0.25,
+        'dt': 1e-4
+    }
+    dfxeq, dfueq = grad_wrt_xu_sym()
+    dfx = dfxeq.subs(values)
+    dfu = dfueq.subs(values)
+    return np.array(dfx), np.array(dfu)
+
+# print(grad_wrt_xu([0, 0, 0, 0, 0, 0, 0, 0], [100, 100])[1])
+
 def test():
     # Initial state and input
     x0 = np.array([0, 0, 0, 0, 0, 0, 0, 0])  # Initial positions and velocities
