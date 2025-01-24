@@ -63,7 +63,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
         print("DEBUG1")
 
         for t in range(TT-1):
-            A[:,:,t], B[:,:,t] = grad_xu(x_opt[:,t,k], u_opt[:,t,k])
+            A[:,:,t], B[:,:,t] = grad_xu(x_opt[:,t,k], u_opt[:,t,k]) # Improve speed
 
         print("DEBUG1.1")
 
@@ -103,7 +103,10 @@ def affine_lqr(x_opt, x_ref, A, B, Qt, Rt, St, QT):
     Ptt= QT # initially PT
 
     pt= np.zeros((ns, 1))
-    ptt=np.diag(QT) # initially pT
+    ptt=np.diag(QT).reshape(-1,1) # initially pT
+    
+    rt = np.diag(Rt).reshape(-1,1)
+    qt = np.diag(Qt).reshape(-1,1)
     
     K = np.zeros((nu,ns,TT-1))
     K_t = np.zeros((nu,ns))
@@ -112,16 +115,18 @@ def affine_lqr(x_opt, x_ref, A, B, Qt, Rt, St, QT):
 
     for t in reversed(range(TT-1)):
         K_t = -np.linalg.inv(Rt + B[:,:,t].T @ Ptt @ B[:,:,t]) @ (St + B[:,:,t].T @ Ptt @ A[:,:,t])
-        sigma_t = -np.linalg.inv(Rt + B[:,:,t].T @ Ptt @ B[:,:,t]) @ (np.diag(Rt) + B[:,:,t].T @ ptt +  B[:,:,t].T@Ptt@ ct)
+
+        sigma_t = -np.linalg.inv(Rt + B[:,:,t].T @ Ptt @ B[:,:,t]) @ (rt + B[:,:,t].T @ ptt +  B[:,:,t].T@Ptt@ ct)
 
         Pt = Qt + A[:,:,t].T @ Ptt @ A[:,:,t] - K_t.T @ (Rt + B[:,:,t].T @ Ptt @ B[:,:,t]) @ K_t
-        pt = np.diag(Qt) + A[:,:,t].T @ ptt + A[:,:,t].T @ Ptt @ ct - K_t.T@(Rt + B[:,:,t].T@Ptt@B[:,:,t])@sigma_t
+
+        pt = qt + A[:,:,t].T @ ptt + A[:,:,t].T @ Ptt @ ct - K_t.T@(Rt + B[:,:,t].T@Ptt@B[:,:,t])@sigma_t
 
         Ptt = Pt
         ptt = pt
 
         K[:,:,t] = K_t
-        sigma[:,t] = sigma_t
+        sigma[:, t] = sigma_t.flatten()
 
     print("DEBUG4")
 
