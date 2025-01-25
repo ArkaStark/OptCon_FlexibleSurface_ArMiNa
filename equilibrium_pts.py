@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from flexible_dyn import flexible_surface_dynamics_symbolic_filled as dynamics
-from flexible_dyn import dynamics_grad_filled as dynamics_grad
+from flexible_dyn import grad_wrt_xu as grad_xu
 
 def find_equilibrium_points(z_init, u, step_size=1, max_iter=100):
     # Initial state and input
@@ -12,7 +12,7 @@ def find_equilibrium_points(z_init, u, step_size=1, max_iter=100):
     for kk in range(max_iter):
         x = np.append(z_eq, [0, 0, 0, 0])
         f = dynamics(x, u)[4:]
-        df_dz = dynamics_grad(x, u)
+        df_dz = np.array(grad_xu(x, u)[0][4:,:4])
 
         try:
             delta_z = - step_size * np.linalg.pinv(df_dz) @ f

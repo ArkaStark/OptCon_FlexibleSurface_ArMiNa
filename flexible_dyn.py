@@ -1,5 +1,6 @@
 import numpy as np
 import sympy as sp
+import pickle
 
 dt = 1e-4
 
@@ -119,12 +120,20 @@ def flexible_surface_dynamics_symbolic():
     })
 
     # sp.pprint(x_next_sym_filled)
+    # Save the symbolic expression
+    with open('symbolic_dynamics.pkl', 'wb') as f:
+        pickle.dump(x_next_sym_filled, f)
 
     return x_next_sym_filled
 
 
-def flexible_surface_dynamics_symbolic_filled(x, u):
-    x_next_sym_filled = flexible_surface_dynamics_symbolic()
+def flexible_surface_dynamics_symbolic_filled(x, u, recompute=False):
+    if recompute:
+        x_next_sym_filled = flexible_surface_dynamics_symbolic()
+    else:
+        with open('symbolic_dynamics.pkl', 'rb') as f:
+            x_next_sym_filled = pickle.load(f)
+
     x_next = x_next_sym_filled.subs({
         'z1': x[0],
         'z2': x[1],
@@ -140,7 +149,7 @@ def flexible_surface_dynamics_symbolic_filled(x, u):
 
     return list(x_next)
 
-# sp.pprint(flexible_surface_dynamics_symbolic_filled([1, 0, 0, 0, 0, 0, 0, 0], [0, 0]))    
+# sp.pprint(flexible_surface_dynamics_symbolic_filled([1, 0, 0, 0, 0, 0, 0, 0], [0, 0], recompute=True))    
 
 def dynamics_grad_symbolic():
     z = sp.Matrix(sp.symbols('z1:5'))  # z1, z2, z3, z4
@@ -181,9 +190,16 @@ def grad_wrt_xu_sym():
     grad_wrt_x = x_next_sym_filled.jacobian(x)
     grad_wrt_u = x_next_sym_filled.jacobian(u)
     # print(grad_wrt_x.shape, grad_wrt_u.shape)
+
+    # Save the symbolic expressions
+    with open('grad_wrt_x.pkl', 'wb') as f:
+        pickle.dump(grad_wrt_x, f)
+    with open('grad_wrt_u.pkl', 'wb') as f:
+        pickle.dump(grad_wrt_u, f)
+
     return grad_wrt_x, grad_wrt_u
 
-def grad_wrt_xu(x, u):
+def grad_wrt_xu(x, u, recompute=False):
     values = {
         'z1': x[0],
         'z2': x[1],
@@ -194,22 +210,22 @@ def grad_wrt_xu(x, u):
         'dot_z3': x[6],
         'dot_z4': x[7],
         'F2': u[0],
-        'F4': u[1],
-        'm1': 0.2,
-        'm2': 0.3,
-        'm3': 0.2,
-        'm4': 0.3,
-        'alpha': 128*0.2,
-        'c': 0.1,
-        'd': 0.25,
-        'dt': 1e-4
+        'F4': u[1]
     }
-    dfxeq, dfueq = grad_wrt_xu_sym()
-    dfx = dfxeq.subs(values)
-    dfu = dfueq.subs(values)
-    return np.array(dfx), np.array(dfu)
 
-# print(grad_wrt_xu([0, 0, 0, 0, 0, 0, 0, 0], [100, 100])[1])
+    if recompute:
+        grad_wrt_x, grad_wrt_u = grad_wrt_xu_sym()
+    else:
+        with open('grad_wrt_x.pkl', 'rb') as f:
+            grad_wrt_x = pickle.load(f)
+        with open('grad_wrt_u.pkl', 'rb') as f:
+            grad_wrt_u = pickle.load(f)
+
+    dfx = grad_wrt_x.subs(values)
+    dfu = grad_wrt_u.subs(values)
+    return np.array(dfx, dtype=float), np.array(dfu, dtype=float)
+
+# print(grad_wrt_xu([0, 0, 0, 0, 0, 0, 0, 0], [100, 100], recompute=True)[0][4:,:4])
 
 def test():
     # Initial state and input
