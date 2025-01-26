@@ -9,7 +9,7 @@ import cost_fn as cost
 def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=False):
     
     TT = timesteps
-    max_iter = 100
+    max_iter = 10
 
     ns = x_ref.shape[0]
     nu = u_ref.shape[0]
@@ -29,12 +29,14 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
 
     Qt = 10*np.eye(ns)
 
-    Rt = 0.5*np.eye(nu)
+    Rt = 0.5*np.ones((nu, nu)) + 0.01*np.eye(nu)
 
     St = np.zeros((nu, ns))
 
     A[:,:,-1], B[:,:,-1] = grad_xu(x_ref[:,TT-1], u_ref[:,TT-1])
-    QT = ctrl.dare(A[:,:,-1], B[:,:,-1], Qt, Rt)[0]
+    # QT = ctrl.dare(A[:,:,-1], B[:,:,-1], Qt, Rt)[0]
+    QT = 10*np.eye(ns)
+    # print("QT: ", QT)
 
     l = np.zeros(max_iter)
 
@@ -73,12 +75,12 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
             print("TODO")
             # gamma = armijo(x_opt[:,:,k], u_opt[:,:,k], x_ref, u_ref, K_star[:,:,:,k], sigma_star[:,:,k], del_u[:,:,k], l[k])
         else:
-            gamma = 0.7
+            gamma = 0.01
 
         # Compute the x_opt and u_opt for the next iteration
         for t in range(TT-1):
             u_opt[:,t,k+1] = u_opt[:,t,k] + K_star[:,:,t,k] @ (x_opt[:, t, k+1] - x_opt[:, t, k]) + gamma * sigma_star[:,t,k]
-            x_opt[:,t+1,k+1] = np.array(dyn(x_opt[:,t,k+1], u_opt[:,t,k+1]))
+            x_opt[:,t+1,k+1] = dyn(x_opt[:,t,k+1], u_opt[:,t,k+1]).flatten()
         print("DEBUG3")
 
     print(f'Algorithm Ended at {k}th iteration')
@@ -96,8 +98,6 @@ def affine_lqr(x_opt, x_ref, A, B, Qt, Rt, St, QT):
 
     del_x[:,0] = x_opt[:,0] - x_ref[:,0]
 
-    del_u = np.zeros((nu, TT-1))
-
     ct = np.zeros((ns,1)) 
     Pt = np.zeros((ns,ns))
     Ptt= QT # initially PT
@@ -114,6 +114,8 @@ def affine_lqr(x_opt, x_ref, A, B, Qt, Rt, St, QT):
     sigma_t = np.zeros((nu,1))
 
     for t in reversed(range(TT-1)):
+        # print("MMt-1: ", np.linalg.eigvals(np.linalg.inv(Rt + B[:,:,t].T @ Ptt @ B[:,:,t])))
+
         K_t = -np.linalg.inv(Rt + B[:,:,t].T @ Ptt @ B[:,:,t]) @ (St + B[:,:,t].T @ Ptt @ A[:,:,t])
 
         sigma_t = -np.linalg.inv(Rt + B[:,:,t].T @ Ptt @ B[:,:,t]) @ (rt + B[:,:,t].T @ ptt +  B[:,:,t].T@Ptt@ ct)
@@ -128,12 +130,8 @@ def affine_lqr(x_opt, x_ref, A, B, Qt, Rt, St, QT):
         K[:,:,t] = K_t
         sigma[:, t] = sigma_t.flatten()
 
-    print("DEBUG4")
-
     for t in range(TT-1):
         del_u[:,t] = K[:,:,t] @ del_x[:,t] + sigma[:,t]
         del_x[:,t+1] = A[:,:,t] @ del_x[:,t] + B[:,:,t] @ del_u[:,t]
-
-    print("DEBUG5")
 
     return K, sigma, del_u

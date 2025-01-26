@@ -6,7 +6,7 @@ from flexible_dyn import grad_wrt_xu as grad_xu
 def find_equilibrium_points(z_init, u, step_size=1, max_iter=100):
     # Initial state and input
 
-    z_eq = z_init
+    z_eq = np.array(z_init)
     tolerance = 1e-6
 
     for kk in range(max_iter):
@@ -16,7 +16,7 @@ def find_equilibrium_points(z_init, u, step_size=1, max_iter=100):
 
         try:
             delta_z = - step_size * np.linalg.pinv(df_dz) @ f
-            z_eq = z_eq + delta_z
+            z_eq = z_eq + delta_z.flatten()
         except np.linalg.LinAlgError:
             print("Singular matrix at iteration: ", kk)
             break

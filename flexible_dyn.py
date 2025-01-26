@@ -120,6 +120,7 @@ def flexible_surface_dynamics_symbolic():
     })
 
     # sp.pprint(x_next_sym_filled)
+
     # Save the symbolic expression
     with open('symbolic_dynamics.pkl', 'wb') as f:
         pickle.dump(x_next_sym_filled, f)
@@ -134,50 +135,29 @@ def flexible_surface_dynamics_symbolic_filled(x, u, recompute=False):
         with open('symbolic_dynamics.pkl', 'rb') as f:
             x_next_sym_filled = pickle.load(f)
 
-    x_next = x_next_sym_filled.subs({
-        'z1': x[0],
-        'z2': x[1],
-        'z3': x[2],
-        'z4': x[3],
-        'dot_z1': x[4],
-        'dot_z2': x[5],
-        'dot_z3': x[6],
-        'dot_z4': x[7],
-        'F2': u[0],
-        'F4': u[1]
-    })
+    # x_next = x_next_sym_filled.subs({
+    #     'z1': x[0],
+    #     'z2': x[1],
+    #     'z3': x[2],
+    #     'z4': x[3],
+    #     'dot_z1': x[4],
+    #     'dot_z2': x[5],
+    #     'dot_z3': x[6],
+    #     'dot_z4': x[7],
+    #     'F2': u[0],
+    #     'F4': u[1]
+    # })
 
-    return list(x_next)
+    #Lambda function for evaluation
+    z = sp.Matrix(sp.symbols('z1 z2 z3 z4'))  # Positions
+    z_dot = sp.Matrix(sp.symbols('dot_z1 dot_z2 dot_z3 dot_z4'))  # Velocities
+    u_s = sp.Matrix(sp.symbols('F2 F4'))  # Input vector (forces applied to z2 and z4)
+    x_next_sym_filled = sp.lambdify((z, z_dot, u_s), x_next_sym_filled, 'numpy')
+    x_next = x_next_sym_filled(x[:4], x[4:], u)
 
-# sp.pprint(flexible_surface_dynamics_symbolic_filled([1, 0, 0, 0, 0, 0, 0, 0], [0, 0], recompute=True))    
+    return np.array(x_next).flatten()
 
-def dynamics_grad_symbolic():
-    z = sp.Matrix(sp.symbols('z1:5'))  # z1, z2, z3, z4
-    x_next_sym_filled = flexible_surface_dynamics_symbolic()
-    dyn_grad = x_next_sym_filled[4:, :].jacobian(z)
-
-    return dyn_grad
-
-# sp.pprint(dynamics_grad_symbolic().shape)
-
-def dynamics_grad_filled(x, u):
-    dyn_grad = dynamics_grad_symbolic()
-    dyn_grad_filled = dyn_grad.subs({
-        'z1': x[0],
-        'z2': x[1],
-        'z3': x[2],
-        'z4': x[3],
-        'dot_z1': x[4],
-        'dot_z2': x[5],
-        'dot_z3': x[6],
-        'dot_z4': x[7],
-        'F2': u[0],
-        'F4': u[1]
-    })
-
-    return np.array(dyn_grad_filled).astype(np.float64)
-
-# sp.pprint(dynamics_grad_filled([0, 0, 0, 0, 0, 0, 0, 0], [100, 100]))
+# sp.pprint(flexible_surface_dynamics_symbolic_filled([0, 0, 0, 0, 0, 0, 0, 0], [0, 0], recompute=True)[4:])    
 
 def grad_wrt_xu_sym():
     x_next_sym_filled = flexible_surface_dynamics_symbolic()
@@ -200,18 +180,18 @@ def grad_wrt_xu_sym():
     return grad_wrt_x, grad_wrt_u
 
 def grad_wrt_xu(x, u, recompute=False):
-    values = {
-        'z1': x[0],
-        'z2': x[1],
-        'z3': x[2],
-        'z4': x[3],
-        'dot_z1': x[4],
-        'dot_z2': x[5],
-        'dot_z3': x[6],
-        'dot_z4': x[7],
-        'F2': u[0],
-        'F4': u[1]
-    }
+    # values = {
+    #     'z1': x[0],
+    #     'z2': x[1],
+    #     'z3': x[2],
+    #     'z4': x[3],
+    #     'dot_z1': x[4],
+    #     'dot_z2': x[5],
+    #     'dot_z3': x[6],
+    #     'dot_z4': x[7],
+    #     'F2': u[0],
+    #     'F4': u[1]
+    # }
 
     if recompute:
         grad_wrt_x, grad_wrt_u = grad_wrt_xu_sym()
@@ -221,8 +201,17 @@ def grad_wrt_xu(x, u, recompute=False):
         with open('grad_wrt_u.pkl', 'rb') as f:
             grad_wrt_u = pickle.load(f)
 
-    dfx = grad_wrt_x.subs(values)
-    dfu = grad_wrt_u.subs(values)
+
+    # Lambda function for evaluation
+    z = sp.Matrix(sp.symbols('z1 z2 z3 z4'))  # Positions
+    z_dot = sp.Matrix(sp.symbols('dot_z1 dot_z2 dot_z3 dot_z4'))  # Velocities
+    u_s = sp.Matrix(sp.symbols('F2 F4'))  # Input vector (forces applied to z2 and z4)
+
+    grad_wrt_x = sp.lambdify((z, z_dot, u_s), grad_wrt_x, 'numpy')
+    grad_wrt_u = sp.lambdify((z, z_dot, u_s), grad_wrt_u, 'numpy')
+
+    dfx = grad_wrt_x(x[:4], x[4:], u)
+    dfu = grad_wrt_u(x[:4], x[4:], u)
     return np.array(dfx, dtype=float), np.array(dfu, dtype=float)
 
 # print(grad_wrt_xu([0, 0, 0, 0, 0, 0, 0, 0], [100, 100], recompute=True)[0][4:,:4])
