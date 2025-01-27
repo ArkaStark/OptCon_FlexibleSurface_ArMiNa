@@ -9,6 +9,7 @@ def cost_task1(x_traj, u_traj, x_ref, u_ref, Qt, Rt, QT):
         J = J + stage_cost(x_traj[:, t], x_ref[:, t], u_traj[:, t], u_ref[:, t], Qt, Rt)
 
     J = J + terminal_cost(x_traj[:, T-1], x_ref[:, T-1], QT)
+    # print("J: ", J)
     return J
 
 def stage_cost(x_stage, x_ref, u_stage, u_ref, Qt, Rt):
@@ -19,13 +20,13 @@ def stage_cost(x_stage, x_ref, u_stage, u_ref, Qt, Rt):
     rt = np.diag(Rt).reshape(-1, 1)
 
     J_t = qt.T @ delta_x + rt.T @ delta_u + 0.5 * delta_x.T @ Qt @ delta_x + 0.5 * delta_u.T @ Rt @ delta_u
-
-    return J_t
+    # print("J_t: ", J_t)
+    return J_t[-1]
 
 def terminal_cost(x_term, x_ref, QT):
     delta_x = x_term - x_ref
     qT = np.diag(QT).reshape(-1, 1)
     J_T = qT.T @ delta_x + 0.5 * delta_x.T @ QT @ delta_x
-
-    return J_T
+    # print("J_T: ", J_T)
+    return J_T[-1]
 

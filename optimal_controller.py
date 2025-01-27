@@ -50,7 +50,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
 
         l[k] = cost.cost_task1(x_opt[:, :, k], u_opt[:, :, k], x_ref, u_ref, Qt, Rt, QT)
 
-                # Gradient norm stopping criteria
+        # Gradient norm stopping criteria
         if k <= 1:
             print(f"\nIteration: {k} \tCost: {l[k]}")
         else: 
