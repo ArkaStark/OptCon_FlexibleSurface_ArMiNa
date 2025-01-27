@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 #from parameters import beta, c, Arm_plot, Arm_plot_up_to_iter_k , Arm_plot_from_iter_k_to_end, arm_max_iter
 from flexible_dyn import x_next_lambda as dyn_lambda
+from cost_fn import cost
  
 #parameter to be checked 
 beta= 0.7 
@@ -36,11 +37,6 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
     Returns:
         float: The step size selected by the Armijo method.
     """
-
-    if task == 1:
-        import cost_fn as cost    
-    elif task == 2:
-        import cost_fn as cost  #check here 
     
     x_size = x_reference.shape[0]
     horizon = x_reference.shape[1]
@@ -78,7 +74,7 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
             u_update[:,t] = u_trajectory[:,t] + Kt[:,:,t] @ (x_update[:,t] - x_trajectory[:,t]) + sigma_t[:,t] * step_size
             x_update[:,t+1] = np.array(x_next(x_update[:,t].reshape(-1, 1), u_update[:,t].reshape(-1, 1))).flatten()
 
-        J_temp = cost.cost_task1(x_update, u_update, x_reference, u_reference, Qt, Rt, QT)
+        J_temp = cost(x_update, u_update, x_reference, u_reference, Qt, Rt, QT)
 
         step_sizes.append(step_size)
         costs_armijo.append(J_temp)
@@ -113,9 +109,9 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
         for j in range(resolution):
             for t in range(horizon-1):
                 u_temp_sec[:,t,j] = u_trajectory[:,t] + Kt[:,:,t] @ (x_temp_sec[:,t,j] - x_trajectory[:,t]) + sigma_t[:,t] * gamma[j]
-                x_temp_sec[:,t+1,j] = np.array(x_next(x_temp_sec[:,t,j].reshape(-1, 1), u_temp_sec[:,t,j].reshape(-1, 1))).flatten()
+                x_temp_sec[:,t+1,j] = np.array(x_next(x_temp_sec[:,t,j], u_temp_sec[:,t,j])).flatten()
                 
-            J_plot[j] = cost.cost_task1(x_update, u_update, x_reference, u_reference, Qt, Rt, QT)
+            J_plot[j] = cost(x_update, u_update, x_reference, u_reference, Qt, Rt, QT)
 
 
         plt.plot(gamma, J+c*gamma*descent, color='red', label='Armijo Condition')

@@ -16,8 +16,8 @@ def stage_cost(x_stage, x_ref, u_stage, u_ref, Qt, Rt):
     delta_x = x_stage - x_ref
     delta_u = u_stage - u_ref
 
-    qt = np.diag(Qt).reshape(-1, 1)
-    rt = np.diag(Rt).reshape(-1, 1)
+    qt = (Qt @ (x_stage - x_ref)).reshape(-1, 1)
+    rt = (Rt @ (u_stage - u_ref)).reshape(-1, 1)
 
     J_t = qt.T @ delta_x + rt.T @ delta_u + 0.5 * delta_x.T @ Qt @ delta_x + 0.5 * delta_u.T @ Rt @ delta_u
     # print("J_t: ", J_t)
@@ -25,7 +25,7 @@ def stage_cost(x_stage, x_ref, u_stage, u_ref, Qt, Rt):
 
 def terminal_cost(x_term, x_ref, QT):
     delta_x = x_term - x_ref
-    qT = np.diag(QT).reshape(-1, 1)
+    qT = (QT@(x_term-x_ref)).reshape(-1, 1)
     J_T = qT.T @ delta_x + 0.5 * delta_x.T @ QT @ delta_x
     # print("J_T: ", J_T)
     return J_T[-1]
