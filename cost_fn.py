@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def cost_task1(x_traj, u_traj, x_ref, u_ref, Qt, Rt, QT):
+def cost(x_traj, u_traj, x_ref, u_ref, Qt, Rt, QT):
     
     J=0
     T = x_traj.shape[1]

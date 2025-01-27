@@ -8,14 +8,14 @@ def animate(timesteps=100):
     # Initialize plot
     fig, ax = plt.subplots()
     ax.set_xlim(0, 5)
-    ax.set_ylim(-1, 1)
-    ax.set_aspect('equal')
+    ax.set_ylim(-0.01, 0.01)
+    # ax.set_aspect('equal')
     line, = ax.plot([], [], 'o-', lw=2)
     time_label = ax.text(0.1, 0.9, '', transform=ax.transAxes)
 
     # Initial state and input
-    x = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    u = np.array([2000, 2000])
+    x = np.array([0.005, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    u = np.array([0, 0])
 
     # Simulate the system
     states = [x]
@@ -50,4 +50,4 @@ def animate(timesteps=100):
     plt.show()
 
 
-animate(100)
+animate(1000)

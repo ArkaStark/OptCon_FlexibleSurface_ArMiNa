@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 #from parameters import beta, c, Arm_plot, Arm_plot_up_to_iter_k , Arm_plot_from_iter_k_to_end, arm_max_iter
-from flexible_dyn import flexible_surface_dynamics_symbolic_filled as dyn
+from flexible_dyn import x_next_lambda as dyn_lambda
  
 #parameter to be checked 
 beta= 0.7 
@@ -65,6 +65,8 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
     x_update = np.zeros((x_size,horizon))
     u_update = np.zeros((u_size,horizon))
 
+    x_next = dyn_lambda()
+
     descent = 0
     for t in range(horizon-1):
         descent = descent + gradJ[:,t] @ delta_u[:,t]
@@ -74,7 +76,7 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
         u_update[:,:] = u_trajectory
         for t in range(horizon-1):
             u_update[:,t] = u_trajectory[:,t] + Kt[:,:,t] @ (x_update[:,t] - x_trajectory[:,t]) + sigma_t[:,t] * step_size
-            x_update[:,t+1] = dyn(x_update[:,t].reshape(-1, 1), u_update[:,t].reshape(-1, 1))
+            x_update[:,t+1] = np.array(x_next(x_update[:,t].reshape(-1, 1), u_update[:,t].reshape(-1, 1))).flatten()
 
         J_temp = cost.cost_task1(x_update, u_update, x_reference, u_reference, Qt, Rt, QT)
 
@@ -111,7 +113,7 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
         for j in range(resolution):
             for t in range(horizon-1):
                 u_temp_sec[:,t,j] = u_trajectory[:,t] + Kt[:,:,t] @ (x_temp_sec[:,t,j] - x_trajectory[:,t]) + sigma_t[:,t] * gamma[j]
-                x_temp_sec[:,t+1,j] = dyn(x_temp_sec[:,t,j].reshape(-1, 1), u_temp_sec[:,t,j].reshape(-1, 1))
+                x_temp_sec[:,t+1,j] = np.array(x_next(x_temp_sec[:,t,j].reshape(-1, 1), u_temp_sec[:,t,j].reshape(-1, 1))).flatten()
                 
             J_plot[j] = cost.cost_task1(x_update, u_update, x_reference, u_reference, Qt, Rt, QT)
 

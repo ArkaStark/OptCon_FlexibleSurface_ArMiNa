@@ -159,6 +159,22 @@ def flexible_surface_dynamics_symbolic_filled(x, u, recompute=False):
 
 # sp.pprint(flexible_surface_dynamics_symbolic_filled([0, 0, 0, 0, 0, 0, 0, 0], [0, 0], recompute=True)[4:])    
 
+def x_next_lambda(recompute=False):
+    if recompute:
+        x_next_sym_filled = flexible_surface_dynamics_symbolic()
+    else:
+        with open('symbolic_dynamics.pkl', 'rb') as f:
+            x_next_sym_filled = pickle.load(f)
+
+    #Lambda function for evaluation
+    # z = sp.Matrix(sp.symbols('z1 z2 z3 z4'))  # Positions
+    # z_dot = sp.Matrix(sp.symbols('dot_z1 dot_z2 dot_z3 dot_z4'))  # Velocities
+    x = sp.Matrix(sp.symbols('z1 z2 z3 z4 dot_z1 dot_z2 dot_z3 dot_z4'))  # State vector
+    u_s = sp.Matrix(sp.symbols('F2 F4'))  # Input vector (forces applied to z2 and z4)
+    x_next_sym_filled = sp.lambdify((x, u_s), x_next_sym_filled, 'numpy')
+
+    return x_next_sym_filled
+
 def grad_wrt_xu_sym():
     x_next_sym_filled = flexible_surface_dynamics_symbolic()
     # Define symbolic variables for state and input
@@ -215,6 +231,26 @@ def grad_wrt_xu(x, u, recompute=False):
     return np.array(dfx, dtype=float), np.array(dfu, dtype=float)
 
 # print(grad_wrt_xu([0, 0, 0, 0, 0, 0, 0, 0], [100, 100], recompute=True)[0][4:,:4])
+
+def grad_xu_lambda(recompute=False):
+    if recompute:
+        grad_wrt_x, grad_wrt_u = grad_wrt_xu_sym()
+    else:
+        with open('grad_wrt_x.pkl', 'rb') as f:
+            grad_wrt_x = pickle.load(f)
+        with open('grad_wrt_u.pkl', 'rb') as f:
+            grad_wrt_u = pickle.load(f)
+
+    # Lambda function for evaluation
+    # z = sp.Matrix(sp.symbols('z1 z2 z3 z4'))  # Positions
+    # z_dot = sp.Matrix(sp.symbols('dot_z1 dot_z2 dot_z3 dot_z4'))  # Velocities
+    x = sp.Matrix(sp.symbols('z1 z2 z3 z4 dot_z1 dot_z2 dot_z3 dot_z4'))  # State vector
+    u_s = sp.Matrix(sp.symbols('F2 F4'))  # Input vector (forces applied to z2 and z4)
+
+    grad_wrt_x = sp.lambdify((x, u_s), grad_wrt_x, 'numpy')
+    grad_wrt_u = sp.lambdify((x, u_s), grad_wrt_u, 'numpy')
+
+    return grad_wrt_x, grad_wrt_u
 
 def test():
     # Initial state and input
