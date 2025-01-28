@@ -67,10 +67,10 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
 
         # Gradient norm stopping criteria
         if k <= 1:
-            print(f"\nuteration: {k} \tCost: {l[k]}")
+            print(f"\niteration: {k} \tCost: {l[k]}")
         else: 
             norm_delta_u =  np.linalg.norm(del_u[:,:,k-1])
-            print(f"\nuteration: {k} \tCost: {l[k]}\tCost reduction: {l[k] - l[k-1]}\tDelta_u Norm: {norm_delta_u}")
+            print(f"\niteration: {k} \tCost: {l[k]}\tCost reduction: {l[k] - l[k-1]}\tDelta_u Norm: {norm_delta_u}")
             if norm_delta_u < 1e-3:
                 break
 
@@ -122,7 +122,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
             gamma = select_stepsize( 1,20,  0.5,0.7,
                                 deltau[:,:,k], x_ref, u_ref, x_opt[:,0, k+1], 
                                 u_opt[:,:,k], JJ[k], descent_arm[k], visu_descent_plot)
-            
+            print('gamma:',gamma)
             # armijo(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref,
             #                 del_u[:,:,k], grad_J_u[:,:,k], l[k], K_star[:,:,:,k], sigma_star[:,:,k],
             #                 k)

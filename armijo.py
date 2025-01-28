@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import cost_fn as cst
+from cost_fn import cost
 from flexible_dyn import x_next_lambda as dyn_lambda
 
 
@@ -44,20 +44,20 @@ def select_stepsize(stepsize_0, armijo_maxiters, cc, beta, deltau, xx_ref, uu_re
 
             # temp solution update
 
-            xx_temp = np.zeros((ns,TT))
-            uu_temp = np.zeros((ni,TT))
+            xx_temp = np.zeros((ns,TT,1))
+            uu_temp = np.zeros((ni,TT,1))
 
-            xx_temp[:,0] = x0
+            xx_temp[:,0,0] = x0
 
 
             for tt in range(TT-1):
-                  uu_temp[:,tt] = uu[:,tt] + stepsize*deltau[:,tt]
-                  xx_temp[:,tt+1] = x_next(xx_temp[:,tt], uu_temp[:,tt]).flatten()
+                  uu_temp[:,tt,0] = uu[:,tt] + stepsize*deltau[:,tt]
+                  xx_temp[:,tt+1,0] = x_next(xx_temp[:,tt], uu_temp[:,tt]).flatten()
 
             # temp cost calculation
             JJ_temp = 0
 
-            JJ_temp = cst(xx_temp[:, :, ii], uu_temp[:, :, ii], xx_ref, uu_ref, Qt, Rt, QT)
+            JJ_temp = cost(xx_temp[:, ii,:], uu_temp[:, ii,:], xx_ref, uu_ref, Qt, Rt, QT)
 
             stepsizes.append(stepsize)      # save the stepsize
             costs_armijo.append(np.min([JJ_temp, 100*JJ]))    # save the cost associated to the stepsize
