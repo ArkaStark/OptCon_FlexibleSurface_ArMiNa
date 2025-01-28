@@ -5,6 +5,7 @@ import control as ctrl
 from flexible_dyn import grad_wrt_xu as grad_xu
 from flexible_dyn import flexible_surface_dynamics_symbolic_filled as dyn
 import cost_fn as cost
+from armijo import armijo
 
 def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=False):
     
@@ -27,7 +28,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
     A = np.zeros((ns, ns, TT-1))
     B = np.zeros((ns, nu, TT-1))
 
-    Qt = 10*np.eye(ns)
+    Qt = 0.7*np.eye(ns)
 
     Rt = 0.5*np.ones((nu, nu)) + 0.01*np.eye(nu)
 
@@ -35,8 +36,8 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
 
     A[:,:,-1], B[:,:,-1] = grad_xu(x_ref[:,TT-1], u_ref[:,TT-1])
     # QT = ctrl.dare(A[:,:,-1], B[:,:,-1], Qt, Rt)[0]
-    QT = 10*np.eye(ns)
-    # print("QT: ", QT)
+    QT = 0.1*np.eye(ns)
+    print("QT: ", QT)
 
     l = np.zeros(max_iter)
 
@@ -72,8 +73,11 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
         K_star[:,:,:,k], sigma_star[:,:,k], del_u[:,:,k] = affine_lqr(x_opt[:,:,k], x_ref, A, B, Qt, Rt, St, QT)
         # Compute the step size
         if armijo_solver==True:
-            print("TODO")
-            # gamma = armijo(x_opt[:,:,k], u_opt[:,:,k], x_ref, u_ref, K_star[:,:,:,k], sigma_star[:,:,k], del_u[:,:,k], l[k])
+            print("TODO") 
+            grad_J_u= Rt[:,:] @ (u_opt[:,:,k]-u_ref)
+            gamma = armijo(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref,
+                            del_u[:,:,k], grad_J_u, l[k], K_star[:,:,:,k], sigma_star[:,:,k],
+                            k)
         else:
             gamma = 0.01
 
@@ -135,3 +139,4 @@ def affine_lqr(x_opt, x_ref, A, B, Qt, Rt, St, QT):
         del_x[:,t+1] = A[:,:,t] @ del_x[:,t] + B[:,:,t] @ del_u[:,t]
 
     return K, sigma, del_u
+

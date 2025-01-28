@@ -27,7 +27,7 @@ def main():
     x_ref = np.append(z_ref, np.zeros((4, z_ref.shape[1])), axis=0)
 
     timestep = x_ref.shape[1]
-    x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timestep, task=1)
+    x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timestep, task=1, armijo_solver=True)
     traj.plot_opt_trajectory(x_gen, u_gen, x_ref, u_ref, t_f=tf, dt=dt)
 
 main()

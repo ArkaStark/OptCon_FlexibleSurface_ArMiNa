@@ -9,7 +9,8 @@ def cost_task1(x_traj, u_traj, x_ref, u_ref, Qt, Rt, QT):
         J = J + stage_cost(x_traj[:, t], x_ref[:, t], u_traj[:, t], u_ref[:, t], Qt, Rt)
 
     J = J + terminal_cost(x_traj[:, T-1], x_ref[:, T-1], QT)
-    return J
+
+    return J[-1]
 
 def stage_cost(x_stage, x_ref, u_stage, u_ref, Qt, Rt):
     delta_x = x_stage - x_ref
