@@ -5,9 +5,9 @@ import control as ctrl
 from flexible_dyn import grad_xu_lambda
 from flexible_dyn import x_next_lambda as dyn_lambda
 from cost_fn import cost
-from armijo import armijo
+from armijo import select_stepsize
 
-def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=False):
+def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=True):
     
     TT = timesteps
     max_iter = 300
@@ -37,6 +37,15 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
     x_next = dyn_lambda()
     grad_x = grad_xu_lambda()[0]
     grad_u = grad_xu_lambda()[1]
+
+    lmbd = np.zeros((ns, TT, max_iter))  #lambdas - costate seq.
+    deltau = np.zeros((nu, TT, max_iter)) #Du - descent direction
+    dJ = np.zeros((nu, TT, max_iter))     #DJ - gradient of J wrt u
+ 
+    JJ = np.zeros(max_iter)          #collect cost
+    descent = np.zeros(max_iter)     #collect descent direction
+    descent_arm = np.zeros(max_iter) #collect descent direction
+    visu_descent_plot = False
 
     A[:,:,-1] = grad_x(x_ref[:,TT-1],u_ref[:,TT-1])
     B[:,:,-1] = grad_u(x_ref[:,TT-1],u_ref[:,TT-1])
@@ -80,17 +89,27 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
             ########## Solve the costate equation [S20C5]
             # Compute the effects of the inputs evolution on cost (rt)
             # and on dynamics (B*Lambda)
-            qT = (QT @ (x_opt[:,-1,k] - x_ref[:,-1]))
-            lamb[:,-1] = qT
-            for t in reversed(range(TT-1)):
+            lmbd_temp = (QT @ (x_opt[:,-1,k] - x_ref[:,-1]))
+            lmbd[:,t-1,k] = lmbd_temp.copy().squeeze()
+            for t in reversed(range(t-1)):
                 rt = (Rt @ (u_opt[:,t,k] - u_ref[:,t]))
                 qt = (Qt @ (x_opt[:,t,k] - x_ref[:,t]))
-                lamb[:,t] = A[:,:,t].T @ lamb[:,t+1] + qt
-                grad_J_u[:,t,k] = B[:,:,t].T @ lamb[:,t+1] + rt
-            
-            gamma = armijo(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref,
-                            del_u[:,:,k], grad_J_u[:,:,k], l[k], K_star[:,:,:,k], sigma_star[:,:,k],
-                            k)
+                lmbd_temp = A[:,:,t].T @ lmbd[:,t+1,k] + qt
+                dJ_temp = B[:,:,t].T @ lmbd[:,t+1,k] + rt
+                deltau_temp = - grad_J_u[:,t,k]
+ 
+                lmbd[:,t,k] = lmbd_temp.squeeze()
+                dJ[:,t,k] = dJ_temp.squeeze()
+                deltau[:,t,k] = deltau_temp.squeeze()
+ 
+                descent[k] += deltau[:,t,k].T@deltau[:,t,k]
+                descent_arm[k] += dJ[:,t,k].T@deltau[:,t,k]
+           
+            gamma = select_stepsize( 1,20,  0.5,0.7,
+                                deltau[:,:,k], x_ref, u_ref, x_opt[:,0, k+1],
+                                u_opt[:,:,k], JJ[k], descent_arm[k], visu_descent_plot)
+            print('gamma:',gamma)
+ 
         else:
             gamma = 1
 
