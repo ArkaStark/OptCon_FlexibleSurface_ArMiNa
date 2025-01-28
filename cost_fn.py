@@ -7,8 +7,9 @@ def cost(x_traj, u_traj, x_ref, u_ref, Qt, Rt, QT):
     T = x_traj.shape[1]
     for t in range(T-2):
         J = J + stage_cost(x_traj[:, t], x_ref[:, t], u_traj[:, t], u_ref[:, t], Qt, Rt)
-
-    J = J + terminal_cost(x_traj[:, T-1], x_ref[:, T-1], QT)
+    stageCost = J
+    terminalCost = terminal_cost(x_traj[:, T-1], x_ref[:, T-1], QT)
+    J = J + terminalCost
     # print("J: ", J)
     return J
 
