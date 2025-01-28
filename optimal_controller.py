@@ -41,7 +41,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Tr
     lmbd = np.zeros((ns, TT, max_iter))  #lambdas - costate seq.
     deltau = np.zeros((nu, TT, max_iter)) #Du - descent direction
     dJ = np.zeros((nu, TT, max_iter))     #DJ - gradient of J wrt u
- 
+#    deltau_temp = np.zeros((nu, TT, max_iter))
     JJ = np.zeros(max_iter)          #collect cost
     descent = np.zeros(max_iter)     #collect descent direction
     descent_arm = np.zeros(max_iter) #collect descent direction
@@ -96,7 +96,8 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Tr
                 qt = (Qt @ (x_opt[:,t,k] - x_ref[:,t]))
                 lmbd_temp = A[:,:,t].T @ lmbd[:,t+1,k] + qt
                 dJ_temp = B[:,:,t].T @ lmbd[:,t+1,k] + rt
-                deltau_temp = - grad_J_u[:,t,k]
+
+                deltau_temp = - dJ_temp
  
                 lmbd[:,t,k] = lmbd_temp.squeeze()
                 dJ[:,t,k] = dJ_temp.squeeze()
@@ -104,10 +105,11 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Tr
  
                 descent[k] += deltau[:,t,k].T@deltau[:,t,k]
                 descent_arm[k] += dJ[:,t,k].T@deltau[:,t,k]
-           
+            
+
             gamma = select_stepsize( 1,20,  0.5,0.7,
                                 deltau[:,:,k], x_ref, u_ref, x_opt[:,0, k+1],
-                                u_opt[:,:,k], JJ[k], descent_arm[k], visu_descent_plot)
+                                u_opt[:,:,k], l[k], descent_arm[k], visu_descent_plot)
             print('gamma:',gamma)
  
         else:

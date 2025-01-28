@@ -26,7 +26,7 @@ def select_stepsize(stepsize_0, armijo_maxiters, cc, beta, deltau,
       """
  
       TT = uu.shape[1]
- 
+      print('tt:',TT)
  
       stepsizes = []  # list of stepsizes
       costs_armijo = []
@@ -45,25 +45,32 @@ def select_stepsize(stepsize_0, armijo_maxiters, cc, beta, deltau,
  
             # temp solution update
  
-            xx_temp = np.zeros((ns,TT,1))
-            uu_temp = np.zeros((ni,TT,1))
+            xx_temp = np.zeros((ns,TT))
+            uu_temp = np.zeros((ni,TT))
  
-            xx_temp[:,0,0] = x0
+            xx_temp[:,0] = x0
  
  
             for tt in range(TT-1):
-                  uu_temp[:,tt,0] = uu[:,tt] + stepsize*deltau[:,tt]
-                  xx_temp[:,tt+1,0] = x_next(xx_temp[:,tt], uu_temp[:,tt]).flatten()
+                  uu_temp[:,tt] = uu[:,tt] + stepsize*deltau[:,tt]
+                  xx_temp[:,tt+1] = x_next(xx_temp[:,tt], uu_temp[:,tt]).flatten()
  
-            # temp cost calculation
-            JJ_temp = 0
+            # # temp cost calculation
+            # JJ_temp = 0
  
-            JJ_temp = cost(xx_temp[:, ii,:], uu_temp[:, ii,:], xx_ref, uu_ref, Qt, Rt, QT)
+            # JJ_temp = cost(xx_temp[:, ii], uu_temp[:, ii], xx_ref, uu_ref, Qt, Rt, QT)
+            J=0
+            T = xx_temp.shape[1]
+            for t in range(TT-2):
+                J = J + stage_cost(xx_temp[:, ii], xx_ref[:, ii], uu_temp[:, ii], uu_ref[:, ii], Qt, Rt)
+
+            J = J + terminal_cost(xx_temp[:, ii], xx_ref[:, ii], QT)
  
             stepsizes.append(stepsize)      # save the stepsize
-            costs_armijo.append(np.min([JJ_temp, 100*JJ]))    # save the cost associated to the stepsize
- 
-            if JJ_temp > JJ  + cc*stepsize*descent_arm:
+            costs_armijo.append(np.min([J, 100*JJ]))    # save the cost associated to the stepsize
+            print('armijo jj:',J)
+            print('armijo scale factor:', JJ  + cc*stepsize*descent_arm)
+            if J > JJ  + cc*stepsize*descent_arm:
                   # update the stepsize
                   stepsize = beta*stepsize
  
@@ -131,4 +138,22 @@ def select_stepsize(stepsize_0, armijo_maxiters, cc, beta, deltau,
             plt.show()
  
       return stepsize
+
+def stage_cost(x_stage, x_ref, u_stage, u_ref, Qt, Rt):
+    delta_x = x_stage - x_ref
+    delta_u = u_stage - u_ref
+
+    qt = (Qt @ (x_stage - x_ref)).reshape(-1, 1)
+    rt = (Rt @ (u_stage - u_ref)).reshape(-1, 1)
+
+    J_t = qt.T @ delta_x + rt.T @ delta_u + 0.5 * delta_x.T @ Qt @ delta_x + 0.5 * delta_u.T @ Rt @ delta_u
+    # print("J_t: ", J_t)
+    return J_t[-1]
+
+def terminal_cost(x_term, x_ref, QT):
+    delta_x = x_term - x_ref
+    qT = (QT@(x_term-x_ref)).reshape(-1, 1)
+    J_T = qT.T @ delta_x + 0.5 * delta_x.T @ QT @ delta_x
+    # print("J_T: ", J_T)
+    return J_T[-1]
  
