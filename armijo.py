@@ -106,19 +106,22 @@ def select_stepsize(stepsize_0, armijo_maxiters, cc, beta, deltau,
  
                   for tt in range(TT-1):
                         uu_temp[:,tt] = uu[:,tt] + step*deltau[:,tt]
-                        xx_temp[:,tt+1] = x_next(xx_temp[:,tt], uu_temp[:,tt])
+                        xx_temp[:,tt+1] = x_next(xx_temp[:,tt], uu_temp[:,tt]).flatten()
  
                         # temp cost calculation
-                  JJ_temp = 0
-                  JJ_temp = cost(xx_temp[:, ii,:], uu_temp[:, ii,:], xx_ref, uu_ref, Qt, Rt, QT)
-                  #for tt in range(TT-1):
-                    #     temp_cost = cst.stagecost(xx_temp[:,tt], uu_temp[:,tt], xx_ref[:,tt], uu_ref[:,tt])[0]
-                  #   JJ_temp += temp_cost
+                #   JJ_temp = 0
+                #   JJ_temp = cost(xx_temp[:, ii,:], uu_temp[:, ii,:], xx_ref, uu_ref, Qt, Rt, QT)
+                  J=0
+                  T = xx_temp.shape[1]
+                  for t in range(TT-2):
+                    J = J + stage_cost(xx_temp[:, t], xx_ref[:, t], uu_temp[:, t], uu_ref[:, t], Qt, Rt)
+
+                  J = J + terminal_cost(xx_temp[:, TT-1], xx_ref[:, TT-1], QT)
  
                   #temp_cost = cst.termcost(xx_temp[:,-1], xx_ref[:,-1])[0]
                   #JJ_temp += temp_cost
  
-                  costs[ii] = np.min([JJ_temp, 100*JJ])
+                  costs[ii] = np.min([J, 100*JJ])
  
  
             plt.figure(1)
@@ -156,6 +159,6 @@ def terminal_cost(x_term, x_ref, QT):
     delta_x = x_term - x_ref
     qT = (QT@(x_term-x_ref)).reshape(-1, 1)
     J_T = qT.T @ delta_x + 0.5 * delta_x.T @ QT @ delta_x
-    print("J_T: ", J_T)
+    #print("J_T: ", J_T)
     return J_T[-1]
  

@@ -45,7 +45,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Tr
     JJ = np.zeros(max_iter)          #collect cost
     descent = np.zeros(max_iter)     #collect descent direction
     descent_arm = np.zeros(max_iter) #collect descent direction
-    visu_descent_plot = False
+    visu_descent_plot = True
 
     A[:,:,-1] = grad_x(x_ref[:,TT-1],u_ref[:,TT-1])
     B[:,:,-1] = grad_u(x_ref[:,TT-1],u_ref[:,TT-1])
