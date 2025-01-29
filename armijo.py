@@ -59,12 +59,14 @@ def select_stepsize(stepsize_0, armijo_maxiters, cc, beta, deltau,
             # JJ_temp = 0
  
             # JJ_temp = cost(xx_temp[:, ii], uu_temp[:, ii], xx_ref, uu_ref, Qt, Rt, QT)
+            print("uu_temp:",uu_temp[:, ii])
+            print("xx_temp:",xx_temp[:, ii])
             J=0
             T = xx_temp.shape[1]
             for t in range(TT-2):
-                J = J + stage_cost(xx_temp[:, ii], xx_ref[:, ii], uu_temp[:, ii], uu_ref[:, ii], Qt, Rt)
+                J = J + stage_cost(xx_temp[:, t], xx_ref[:, t], uu_temp[:, t], uu_ref[:, t], Qt, Rt)
 
-            J = J + terminal_cost(xx_temp[:, ii], xx_ref[:, ii], QT)
+            J = J + terminal_cost(xx_temp[:, TT-1], xx_ref[:, TT-1], QT)
  
             stepsizes.append(stepsize)      # save the stepsize
             costs_armijo.append(np.min([J, 100*JJ]))    # save the cost associated to the stepsize
@@ -147,13 +149,13 @@ def stage_cost(x_stage, x_ref, u_stage, u_ref, Qt, Rt):
     rt = (Rt @ (u_stage - u_ref)).reshape(-1, 1)
 
     J_t = qt.T @ delta_x + rt.T @ delta_u + 0.5 * delta_x.T @ Qt @ delta_x + 0.5 * delta_u.T @ Rt @ delta_u
-    # print("J_t: ", J_t)
+    #print("J_t: ", J_t)
     return J_t[-1]
 
 def terminal_cost(x_term, x_ref, QT):
     delta_x = x_term - x_ref
     qT = (QT@(x_term-x_ref)).reshape(-1, 1)
     J_T = qT.T @ delta_x + 0.5 * delta_x.T @ QT @ delta_x
-    # print("J_T: ", J_T)
+    print("J_T: ", J_T)
     return J_T[-1]
  

@@ -21,12 +21,12 @@ def stage_cost(x_stage, x_ref, u_stage, u_ref, Qt, Rt):
 
     J_t = qt.T @ delta_x + rt.T @ delta_u + 0.5 * delta_x.T @ Qt @ delta_x + 0.5 * delta_u.T @ Rt @ delta_u
     # print("J_t: ", J_t)
-    return J_t[-1]
+    return J_t
 
 def terminal_cost(x_term, x_ref, QT):
     delta_x = x_term - x_ref
     qT = (QT@(x_term-x_ref)).reshape(-1, 1)
     J_T = qT.T @ delta_x + 0.5 * delta_x.T @ QT @ delta_x
     # print("J_T: ", J_T)
-    return J_T[-1]
+    return J_T
 
