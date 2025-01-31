@@ -23,7 +23,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
     del_u = np.zeros((nu, TT-1, max_iter))
 
     lamb = np.zeros((ns, TT))
-    grad_J_u = np.zeros((nu, TT, max_iter))
+    grad_J_u = np.zeros((nu, TT-1, max_iter))
 
     A = np.zeros((ns, ns, TT-1))
     B = np.zeros((ns, nu, TT-1))
@@ -73,6 +73,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
             B[:,:,t] = grad_u(x_opt[:,t,k], u_opt[:,t,k])
 
         K_star[:,:,:,k], sigma_star[:,:,k], del_u[:,:,k] = affine_lqr(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref, A, B, Qt, Rt, St, QT)
+
         # Compute the step size
         if armijo_solver==True and k>0:
             print("TODO")
@@ -88,9 +89,9 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
                 lamb[:,t] = A[:,:,t].T @ lamb[:,t+1] + qt
                 grad_J_u[:,t,k] = B[:,:,t].T @ lamb[:,t+1] + rt
             
-            gamma = armijo(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref,
-                            del_u[:,:,k], grad_J_u[:,:,k], l[k], K_star[:,:,:,k], sigma_star[:,:,k],
-                            k)
+            gamma = armijo(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref, 
+                                  del_u[:,:,k], grad_J_u[:,:,k], l[k], K_star[:,:,:,k], sigma_star[:,:,k], Qt, Rt, QT, plot=True)
+            print('gamma:',gamma)
         else:
             gamma = 1
 
