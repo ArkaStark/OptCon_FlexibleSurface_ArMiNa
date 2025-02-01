@@ -136,4 +136,73 @@ def plot_opt_trajectory(x_opt, u_opt, x_ref, u_ref, t_f=10, dt=1e-4):
     plt.tight_layout()
     plt.show()
 
+def plot_LQR_trajectories(x_real_LQR, u_real_LQR, x_gen, u_gen, t_f=10, dt=1e-4):
 
+    total_time_steps = int(t_f / dt)
+    time = np.linspace(0, t_f, total_time_steps)
+    
+    fig = plt.figure(figsize=(10, 10))
+    
+    # Define naming and color schemes
+    names = {
+        0: 'z1', 1: 'z2', 2: 'z3', 3: 'z4',
+        4: 'z1_dot', 5: 'z2_dot', 6: 'z3_dot', 7: 'z4_dot',
+        8: 'u2', 9: 'u4'
+    }
+    colors_ref = {0: 'm', 1: 'orange', 2: 'b', 3: 'g', 4: 'r', 5: 'darkmagenta', 6: 'chocolate', 7: 'navy', 8: 'limegreen', 9: 'darkred'}
+    colors_gen = {0: 'darkmagenta', 1: 'chocolate', 2: 'navy', 3: 'limegreen', 4: 'darkred', 5: 'm', 6: 'orange', 7: 'b', 8: 'g', 9: 'r'}
+    
+    # Plot states
+    for i in range(8):
+        ax = fig.add_subplot(5, 2, i+1)
+        ax.plot(time, x_real_LQR[i,:], color=colors_ref[i], linestyle='-', linewidth=2, 
+                   label=f'{names[i]}')
+        ax.plot(time, x_gen[i,:], color=colors_gen[i], linestyle='--', linewidth=2,
+                   label=f'{names[i]}' + r'$^{des}$')
+        ax.set_title(names[i])
+
+    for i in range(2):
+        ax = fig.add_subplot(5, 2, i+9)
+        ax.plot(time, u_real_LQR[i,:], color=colors_ref[i+8], linestyle='-', linewidth=2,
+                label=f'{names[i+8]}')
+        ax.plot(time, u_gen[i,:], color=colors_gen[i+8], linestyle='--', linewidth=2,
+                label=f'{names[i+8]}' + r'$^{des}$')
+        ax.set_title(names[i+8])
+      
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
+
+def plot_LQR_tracking_errors(x_real_LQR, x_gen, delta_u, t_f=10, dt=1e-4):
+
+    total_time_steps = int(t_f / dt)
+    time = np.linspace(0, t_f, total_time_steps)
+    
+    fig = plt.figure(figsize=(10, 10))
+    
+    # Define naming and color schemes
+    names = {
+        0: 'z1', 1: 'z2', 2: 'z3', 3: 'z4',
+        4: 'z1_dot', 5: 'z2_dot', 6: 'z3_dot', 7: 'z4_dot',
+        8: 'u2', 9: 'u4'
+    }
+    colors = {0: 'm', 1: 'orange', 2: 'b', 3: 'g', 4: 'r', 5: 'darkmagenta', 6: 'chocolate', 7: 'navy', 8: 'limegreen', 9: 'darkred'}
+    
+    # Plot individual state tracking errors
+    for i in range(8):
+        error = (x_real_LQR[i,:] - x_gen[i,:])
+        ax = fig.add_subplot(5, 2, i+1)
+        ax.plot(time, error, color=colors[i], linestyle='-', linewidth=2, 
+                   label=f'{names[i]}')
+        ax.set_title(names[i])
+
+    for i in range(2):
+        error = delta_u[i,:]
+        ax = fig.add_subplot(5, 2, i+9)
+        ax.plot(time, error, color=colors[i+8], linestyle='-', linewidth=2,
+                label=f'{names[i+8]}')
+        ax.set_title(names[i+8])
+ 
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
