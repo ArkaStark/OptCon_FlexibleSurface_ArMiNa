@@ -7,7 +7,7 @@ from flexible_dyn import x_next_lambda as dyn_lambda
 from cost_fn import cost
 from armijo import armijo
 
-def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=False):
+def newton_optimal_control(x_ref, u_ref, timesteps=100, armijo_solver=False):
     
     TT = timesteps
     max_iter = 300
@@ -62,7 +62,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
         else: 
             norm_delta_u =  np.linalg.norm(del_u[:,:,k-1])
             print(f"\nIteration: {k} \tCost: {l[k]}\tCost reduction: {l[k] - l[k-1]}\tDelta_u Norm: {norm_delta_u}")
-            if norm_delta_u < 1e-3:
+            if norm_delta_u < 1e-6:
                 break
 
         # Initialization of x0 for the next iteration

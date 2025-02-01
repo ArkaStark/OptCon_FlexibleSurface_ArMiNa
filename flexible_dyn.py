@@ -230,7 +230,7 @@ def grad_wrt_xu(x, u, recompute=False):
     dfu = grad_wrt_u(x[:4], x[4:], u)
     return np.array(dfx, dtype=float), np.array(dfu, dtype=float)
 
-# print(grad_wrt_xu([0, 0, 0, 0, 0, 0, 0, 0], [100, 100], recompute=True)[0][4:,:4])
+# print(grad_wrt_xu([0, 0, 0, 0, 0, 0, 0, 0], [100, 100], recompute=False)[1].shape)
 
 def grad_xu_lambda(recompute=False):
     if recompute:
