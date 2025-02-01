@@ -2,6 +2,7 @@ import numpy as np
 import equilibrium_pts as eq
 import trajectory as traj
 from optimal_controller import newton_optimal_control as noc
+import LQRregulator as lqr
 
 def main():
     z0 = [0, 0, 0, 0]
@@ -29,5 +30,11 @@ def main():
     timestep = x_ref.shape[1]
     x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timestep, task=1, armijo_solver=True)
     traj.plot_opt_trajectory(x_gen, u_gen, x_ref, u_ref, t_f=tf, dt=dt)
+
+    x_LQR, delta_u = lqr.LQR_system_regulator(x_gen, u_gen)
+    u_LQR = u_gen + delta_u
+    traj.plot_LQR_trajectories(x_LQR, u_LQR, x_gen, u_gen,t_f=tf, dt=dt)
+    traj.plot_LQR_tracking_errors(x_LQR, x_gen, delta_u,t_f=tf, dt=dt)
+
 
 main()

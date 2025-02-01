@@ -29,9 +29,9 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Tr
     B = np.zeros((ns, nu, TT-1))
 
     Qt = 10*np.eye(ns)
-
+    qtt = np.diag(Qt)
     Rt = 1e-3*np.ones((nu, nu)) + 1e-4*np.eye(nu)
-
+    rtt = np.diag(Rt)
     St = np.zeros((nu, ns))
 
     x_next = dyn_lambda()
@@ -45,7 +45,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Tr
     JJ = np.zeros(max_iter)          #collect cost
     descent = np.zeros(max_iter)     #collect descent direction
     descent_arm = np.zeros(max_iter) #collect descent direction
-    visu_descent_plot = True
+    visu_descent_plot = False
 
     A[:,:,-1] = grad_x(x_ref[:,TT-1],u_ref[:,TT-1])
     B[:,:,-1] = grad_u(x_ref[:,TT-1],u_ref[:,TT-1])
@@ -89,8 +89,8 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Tr
         for t in reversed(range(TT-1)):
             rt = (Rt @ (u_opt[:,t,k] - u_ref[:,t]))
             qt = (Qt @ (x_opt[:,t,k] - x_ref[:,t]))
-            lmbd[:, t] = A[:,:,t].T @ lmbd[:,t+1] + qt
-            dJ[:,t] = B[:,:,t].T @ lmbd[:,t+1] + rt
+            lmbd[:, t] = A[:,:,t].T @ lmbd[:,t+1] + qt + qtt
+            dJ[:,t] = B[:,:,t].T @ lmbd[:,t+1] + rt + rtt
         # print(dJ[:,:,1])
         K_star[:,:,:,k], sigma_star[:,:,k], del_u[:,:,k] = affine_lqr(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref, A, B, Qt, Rt, St, QT)
         # Compute the step size

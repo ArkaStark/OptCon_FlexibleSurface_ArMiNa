@@ -4,7 +4,7 @@ from cost_fn import cost
 from flexible_dyn import x_next_lambda as dyn_lambda
 
 def select_stepsize(stepsize_0, armijo_maxiters, cc, beta, deltau, gradJ,
-    xx_ref, uu_ref,  xx, uu, JJ, K_star, sigma_star, iteration, plot = False):
+    xx_ref, uu_ref,  xx, uu, JJ, K_star, sigma_star, iteration, plot ):
 
     TT = uu.shape[1]
 
@@ -37,7 +37,7 @@ def select_stepsize(stepsize_0, armijo_maxiters, cc, beta, deltau, gradJ,
         xx_temp[:,0] = xx[:, 0]
 
         for tt in range(TT-1):                  
-            uu_temp[:,tt] = uu[:,tt] + stepsize*(K_star[:,:,tt] @ (xx_temp[:,tt] - xx[:,tt]) + sigma_star[:,tt])
+            uu_temp[:,tt] = uu[:,tt] + K_star[:,:,tt] @ (xx_temp[:,tt] - xx[:,tt]) + sigma_star[:,tt] * stepsize
             xx_temp[:,tt+1] = x_next(xx_temp[:,tt], uu_temp[:,tt]).flatten()
 
         J_temp = cost(xx_temp, uu_temp, xx_ref, uu_ref,Qt, Rt, QT)
@@ -72,7 +72,7 @@ def select_stepsize(stepsize_0, armijo_maxiters, cc, beta, deltau, gradJ,
             xx_temp[:,0] = xx[:,0]
 
             for tt in range(TT-1):
-                uu_temp[:,tt] = uu[:,tt] + step*(K_star[:,:,tt] @ (xx_temp[:,tt] - xx[:,tt]) + sigma_star[:,tt])
+                uu_temp[:,tt] = uu[:,tt] + K_star[:,:,tt] @ (xx_temp[:,tt] - xx[:,tt]) + sigma_star[:,tt] * step
                 xx_temp[:,tt+1] = x_next(xx_temp[:,tt], uu_temp[:,tt]).flatten()
 
             JJ_temp = cost(xx_temp, uu_temp, xx_ref, uu_ref,Qt, Rt, QT)
