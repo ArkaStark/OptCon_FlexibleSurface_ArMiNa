@@ -7,7 +7,7 @@ from flexible_dyn import x_next_lambda as dyn_lambda
 from cost_fn import cost
 from armijo import armijo
 
-def newton_optimal_control(x_ref, u_ref, timesteps=100, armijo_solver=False):
+def noc(x_ref, u_ref, timesteps=100, armijo_solver=False):
     
     TT = timesteps
     max_iter = 300
@@ -29,9 +29,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, armijo_solver=False):
     B = np.zeros((ns, nu, TT-1))
 
     Qt = 10*np.eye(ns)
-
     Rt = 1e-3*np.ones((nu, nu)) + 1e-4*np.eye(nu)
-
     St = np.zeros((nu, ns))
 
     x_next = dyn_lambda()
@@ -57,7 +55,7 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, armijo_solver=False):
         l[k] = cost(x_opt[:, :, k], u_opt[:, :, k], x_ref, u_ref, Qt, Rt, QT)
 
         # Gradient norm stopping criteria
-        if k <= 1:
+        if k < 1:
             print(f"\nIteration: {k} \tCost: {l[k]}")
         else: 
             norm_delta_u =  np.linalg.norm(del_u[:,:,k-1])
