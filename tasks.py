@@ -11,7 +11,10 @@ import animation
 
 def main():
 
-    tasks_to_run = [2, 4]
+    tf = 3
+    dt = 1e-4
+
+    tasks_to_run = [3]
 
     if 1 in tasks_to_run:
         print ("\n\n\t TASK 1 \n\n")
@@ -28,9 +31,6 @@ def main():
 
         print("\nGenerating step trajectory between equilibrium points...\n")
 
-        tf = 1
-        dt = 1e-4
-
         z_ref, u_ref = traj.generate_step_trajectory([z_eq1, z_eq2], [u_eq1, u_eq2], t_f=tf, dt=dt)
         # print("x_ref:\n", z_ref)
         # print("u_ref:\n", u_ref)
@@ -41,7 +41,7 @@ def main():
         x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=False)
         
         # Plotting
-        
+
         plt.semilogy(l)
         plt.xlabel('Iteration $k$', fontsize=12)
         plt.ylabel(r'$J(u^k)$', fontsize=12)
@@ -62,9 +62,6 @@ def main():
         z_eq4, u_eq4 = eq.find_equilibrium_points(z0, [3, 2])
         z_eq5, u_eq5 = eq.find_equilibrium_points(z0, [0, 0])
         eq.plot_eq_pts([z_eq1, z_eq2, z_eq3, z_eq4, z_eq5])
-
-        tf = 3
-        dt = 1e-2
 
         # Generate trajectory
         print("\nGenerating smooth trajectory between equilibrium points...\n")
