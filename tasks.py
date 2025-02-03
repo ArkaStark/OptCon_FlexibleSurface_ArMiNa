@@ -5,6 +5,7 @@ import os
 import equilibrium_pts as eq
 import trajectory as traj
 from newton_optimal_controller import noc
+from linear_quadratic_regulator import lqr
 from model_predictive_controller import mpc
 import animation
 
@@ -40,11 +41,11 @@ def main():
         x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=False)
         
         # Plotting
-
-        plt.plot(l)
+        
+        plt.semilogy(l)
         plt.xlabel('Iteration $k$', fontsize=12)
         plt.ylabel(r'$J(u^k)$', fontsize=12)
-        plt.title('Cost Evolution', fontsize=12)
+        plt.title('Cost Evolution (Semi-Logarithmic Scale)', fontsize=12)
         plt.show()
 
         traj.plot_opt_trajectory(x_gen, u_gen, x_ref, u_ref, t_f=tf, dt=dt)
@@ -80,10 +81,10 @@ def main():
 
         # Plotting
 
-        plt.plot(l)
+        plt.semilogy(l)
         plt.xlabel('Iteration $k$', fontsize=12)
         plt.ylabel(r'$J(u^k)$', fontsize=12)
-        plt.title('Cost Evolution', fontsize=12)
+        plt.title('Cost Evolution (Semi-Logarithmic Scale)', fontsize=12)
         plt.show()
 
         traj.plot_opt_trajectory(x_gen, u_gen, x_ref, u_ref, t_f=tf, dt=dt)
@@ -91,6 +92,19 @@ def main():
 
     if 3 in tasks_to_run:
             print ("\n\n\t TASK 3 \n\n")
+
+            recompute = True
+            if recompute==False and os.path.exists('lqr_results.npz'):
+                print("\nLoading LQR results...\n")
+                x_lqr, u_lqr = np.load('lqr_results.npz')['x_lqr'], np.load('lqr_results.npz')['u_lqr']
+            else:
+                x_gen, u_gen = np.load('optimal_trajectory.npz')['x_gen'], np.load('optimal_trajectory.npz')['u_gen']
+                x_lqr, u_lqr = lqr(x_gen, u_gen)
+                np.savez('lqr_results.npz', x_lqr=x_lqr, u_lqr=u_lqr)
+
+            traj.plot_opt_trajectory(x_lqr, u_lqr, x_gen, u_gen, t_f=tf, dt=dt)
+            traj.plot_tracking_error(x_lqr, u_lqr, x_gen, u_gen, t_f=tf, dt=dt)
+            animation.animate(x_lqr[:,0], u_lqr, frames=100)
 
     if 4 in tasks_to_run:
         print ("\n\n\t TASK 4 \n\n")
@@ -103,7 +117,9 @@ def main():
             x_gen, u_gen = np.load('optimal_trajectory.npz')['x_gen'], np.load('optimal_trajectory.npz')['u_gen']
             x_mpc, u_mpc = mpc(x_gen, u_gen)
             np.savez('mpc_results.npz', x_mpc=x_mpc, u_mpc=u_mpc)
+
         traj.plot_opt_trajectory(x_mpc, u_mpc, x_gen, u_gen, t_f=tf, dt=dt)
+        traj.plot_tracking_error(x_mpc, u_mpc, x_gen, u_gen, t_f=tf, dt=dt)
         animation.animate(x_mpc[:,0], u_mpc, frames=100)
 
 

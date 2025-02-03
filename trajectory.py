@@ -71,15 +71,6 @@ def generate_smooth_trajectory(z_eqs, u_eqs, t_f=10, dt=1e-4):
     return z_reference, u_reference
 
 def plot_trajectory(z_refs, u_refs, t_f=10, dt=1e-4):
-    """
-    Plots the generated trajectory and control input.
-
-    Args:
-        x_reference (np.ndarray): State trajectory.
-        u_reference (np.ndarray): Control input trajectory.
-        t_f (float): Final time for the trajectory.
-        dt (float): Time step duration.
-    """
 
     total_time_steps = int(t_f / dt)
     time = np.linspace(0, t_f, total_time_steps)
@@ -104,15 +95,6 @@ def plot_trajectory(z_refs, u_refs, t_f=10, dt=1e-4):
     plt.show()
 
 def plot_opt_trajectory(x_opt, u_opt, x_ref, u_ref, t_f=10, dt=1e-4):
-    """
-    Plots the optimized trajectory and control input.
-
-    Args:
-        x_opt (np.ndarray): State trajectory.
-        u_opt (np.ndarray): Control input trajectory.
-        t_f (float): Final time for the trajectory.
-        dt (float): Time step duration.
-    """
 
     total_time_steps = int(t_f / dt)
     time = np.linspace(0, t_f, total_time_steps)
@@ -124,16 +106,41 @@ def plot_opt_trajectory(x_opt, u_opt, x_ref, u_ref, t_f=10, dt=1e-4):
     for i in range(x_opt.shape[0]):
         ax = fig.add_subplot(5, 2, i+1)
         ax.plot(time, x_opt[i, :], linewidth=2)
-        ax.plot(time, x_ref[i, :], linewidth=2)
+        ax.plot(time, x_ref[i, :], linewidth=2, linestyle='--')
         ax.set_title(names[i])
 
     for i in range(u_opt.shape[0]):
         ax = fig.add_subplot(5, 2, i+9)
         ax.plot(time, u_opt[i, :], linewidth=2)
-        ax.plot(time, u_ref[i, :], linewidth=2)
+        ax.plot(time, u_ref[i, :], linewidth=2, linestyle='--')
         ax.set_title(names[i+8])
 
     plt.tight_layout()
     plt.show()
+
+
+def plot_tracking_error(x_opt, u_opt, x_ref, u_ref, t_f=10, dt=1e-4):
+
+    total_time_steps = int(t_f / dt)
+    time = np.linspace(0, t_f, total_time_steps)
+    
+    fig = plt.figure(figsize=(10, 10))
+
+    names = ['z1', 'z2', 'z3', 'z4', 'z1_dot', 'z2_dot', 'z3_dot', 'z4_dot', 'u2', 'u4']
+
+    for i in range(x_opt.shape[0]):
+        ax = fig.add_subplot(5, 2, i+1)
+        x_error = x_opt[i, :] - x_ref[i, :]
+        ax.plot(time, x_error, linewidth=2)
+        ax.set_title(names[i])
+
+    for i in range(u_opt.shape[0]):
+        ax = fig.add_subplot(5, 2, i+9)
+        u_error = u_opt[i, :] - u_ref[i, :]
+        ax.plot(time, u_error, linewidth=2)
+        ax.set_title(names[i+8])
+
+    plt.tight_layout()
+    plt.show()        
 
 

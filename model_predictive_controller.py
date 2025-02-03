@@ -32,14 +32,16 @@ def mpc(x_gen, u_gen):
         A[:,:,t] = grad_x(x_gen[:,t], u_gen[:,t])
         B[:,:,t] = grad_u(x_gen[:,t], u_gen[:,t])
 
-    x_mpc[:,0] = x_gen[:,0]
+    initial_perturbation = 0.05*np.random.randn(x_size)
+
+    x_mpc[:,0] = x_gen[:,0]*(1 + initial_perturbation)
 
     for t in range(TT-2):
 
         t_hor = np.minimum(t + np.arange(T_pred), TT-1)
-        t_hor_pred = t_hor[:-1] if len(t_hor) > 1 else t_hor
+        # t_hor_pred = t_hor[:-1] if len(t_hor) > 1 else t_hor
         
-        u_mpc_p, problem = solver_linear_mpc(x_mpc[:, t], x_gen[:, t_hor], u_gen[:, t_hor], A[:,:,t_hor], B[:,:,t_hor], Qt, Rt, QT, T_pred)
+        u_mpc_p, problem = solver_linear_mpc(x_mpc[:, t], x_gen[:, t_hor], u_gen[:, t_hor], A[:,:,t_hor-1], B[:,:,t_hor-1], Qt, Rt, QT, T_pred)
         u_mpc[:, t] = u_mpc_p[:, 0]
         x_mpc[:, t+1] = np.array(dyn(x_mpc[:, t], u_mpc[:, t])).flatten()
 
