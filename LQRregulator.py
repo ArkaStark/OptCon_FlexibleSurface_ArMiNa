@@ -72,27 +72,27 @@ def LQR_system_regulator(x_gen, u_gen):
         x_regulator[:,t] = x_gen[:,t] + delta_x[:,t]
         x_LQR_evolution[:,t+1] = x_next(x_LQR_evolution[:,t], u_regulator[:,t]).flatten()
 
-    plt.figure()
-    for i in range(ns):
-        plt.plot(x_LQR_evolution[i, :], color = 'red', label = f'x[{i}]')
-    for i in range(nu):
-        plt.plot(u_regulator[i,:], color = 'blue', label = 'u_regulator')
-    plt.title("System Evolution with Real Dynamics and LQRegulated input")
-    plt.legend()
-    plt.grid()
-    plt.show()
+    # plt.figure()
+    # for i in range(ns):
+    #     plt.plot(x_LQR_evolution[i, :], color = 'red', label = f'x[{i}]')
+    # for i in range(nu):
+    #     plt.plot(u_regulator[i,:], color = 'blue', label = 'u_regulator')
+    # plt.title("System Evolution with Real Dynamics and LQRegulated input")
+    # plt.legend()
+    # plt.grid()
+    # plt.show()
 
-    plt.figure()
-    for i in range(ns):
-        plt.plot(delta_x[i, :], color = 'red', label = r'$\Delta$' f'x[{i}]')
-    for i in range(nu):
-        plt.plot(delta_u[i,:], color = 'blue', label = r'$\Delta$' 'u')
-    plt.title("LQR Residuals evolution")
-    plt.legend()
-    plt.grid()
-    plt.show()
+    # plt.figure()
+    # for i in range(ns):
+    #     plt.plot(delta_x[i, :], color = 'red', label = r'$\Delta$' f'x[{i}]')
+    # for i in range(nu):
+    #     plt.plot(delta_u[i,:], color = 'blue', label = r'$\Delta$' 'u')
+    # plt.title("LQR Residuals evolution")
+    # plt.legend()
+    # plt.grid()
+    # plt.show()
 
-    return x_LQR_evolution, delta_u
+    return x_LQR_evolution, delta_u, x_natural_evolution
 
 
 def LQR_solver(A, B, Qt_Star, Rt_Star, QT_Star):

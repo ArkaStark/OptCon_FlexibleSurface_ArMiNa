@@ -136,7 +136,7 @@ def plot_opt_trajectory(x_opt, u_opt, x_ref, u_ref, t_f=10, dt=1e-4):
     plt.tight_layout()
     plt.show()
 
-def plot_LQR_trajectories(x_real_LQR, u_real_LQR, x_gen, u_gen, t_f=10, dt=1e-4):
+def plot_LQR_trajectories(x_real_LQR, u_real_LQR, x_gen, u_gen, x_natural, t_f=10, dt=1e-4):
 
     total_time_steps = int(t_f / dt)
     time = np.linspace(0, t_f, total_time_steps)
@@ -159,7 +159,8 @@ def plot_LQR_trajectories(x_real_LQR, u_real_LQR, x_gen, u_gen, t_f=10, dt=1e-4)
                    label=f'{names[i]}')
         ax.plot(time, x_gen[i,:], color=colors_gen[i], linestyle='--', linewidth=2,
                    label=f'{names[i]}' + r'$^{des}$')
-        ax.set_title(names[i])
+        # ax.plot(time, x_natural[i,:], color='black', linestyle='-', linewidth=2 )
+        ax.set_title(names[i]) 
 
     for i in range(2):
         ax = fig.add_subplot(5, 2, i+9)

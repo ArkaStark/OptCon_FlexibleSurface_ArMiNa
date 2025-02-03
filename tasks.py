@@ -86,9 +86,9 @@ def main():
         traj.plot_opt_trajectory(x_gen, u_gen, x_ref, u_ref, t_f=tf, dt=dt)
         animation.animate(x_gen[:,0], u_gen, frames=100)
 
-        x_LQR, delta_u = lqr.LQR_system_regulator(x_gen, u_gen)
+        x_LQR, delta_u, x_natural = lqr.LQR_system_regulator(x_gen, u_gen)
         u_LQR = u_gen + delta_u
-        traj.plot_LQR_trajectories(x_LQR, u_LQR, x_gen, u_gen,t_f=tf, dt=dt)
+        traj.plot_LQR_trajectories(x_LQR, u_LQR, x_gen, u_gen, x_natural, t_f=tf, dt=dt)
         traj.plot_LQR_tracking_errors(x_LQR, x_gen, delta_u,t_f=tf, dt=dt)
 
     
