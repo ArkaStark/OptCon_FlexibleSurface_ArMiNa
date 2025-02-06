@@ -12,9 +12,6 @@ In this file the simulation timestep and the delta value for discretization can 
 The task to be run can be set from the variable task_to_run writing a number 1 to 4.
 If the plot for Armijo line search is needed put Armijo solver = True , otherwise a constant stepsize = 1 will be used. 
 
-### newton_optimal_controller.py
-this file implements a newton closed loop taking as input a reference curve and computing an optimal trajectory.
-
 ### armijo.py
 this file implements the line search following the Armijo algorithm. 
 
