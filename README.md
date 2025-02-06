@@ -7,6 +7,34 @@
 This project focuses on the optimal trajectory generation and control of an actuated flexible surface. Two control strategies—LQR (Linear Quadratic Regulator) and MPC (Model Predictive Control)—were implemented and compared. Based on the analysis, the LQR regulator demonstrated better performance in terms of computational efficiency and trajectory tracking accuracy.
 
 ## Files and Descriptions
+### tasks.py
+In this file the simulation timestep and the delta value for discretization can be edited.
+The task to be run can be set from the variable task_to_run writing a number 1 to 4.
+If the plot for Armijo line search is needed put Armijo solver = True , otherwise a constant stepsize = 1 will be used. 
+
+### newton_optimal_controller.py
+this file implements a newton closed loop taking as input a reference curve and computing an optimal trajectory.
+
+### armijo.py
+this file implements the line search following the Armijo algorithm. 
+
+### equilibrium_pts.py
+this is the file in which the equilibrium points are computed, starting from the system dynamics.
+
+### cost_fn.py
+this funciton sets the LQR cost function terms and it returns the cost.
+
+### flexible_dyn.py
+in this file are implemented the parameters, the discretization, system matrices A and B. 
+
+### linear_quadratic_regulator.py 
+in this file is implemented the LQR algorithm for task 3 requirements.
+
+### model_predictive_controller.py
+in this file is implemented the MPC algorithm for task 4 requirements.
+
+### trajectory.py 
+in this file are implemented the step desired curve for task 1 and a smooth trajectory for task 2.
 
 ### animation.py
 
