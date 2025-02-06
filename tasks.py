@@ -14,7 +14,7 @@ def main():
     tf = 3
     dt = 1e-4
 
-    tasks_to_run = [3]
+    tasks_to_run = [1]
 
     if 1 in tasks_to_run:
         print ("\n\n\t TASK 1 \n\n")
@@ -38,7 +38,7 @@ def main():
         x_ref = np.append(z_ref, np.zeros((4, z_ref.shape[1])), axis=0)
 
         timesteps = x_ref.shape[1]
-        x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=False)
+        x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=True)
         
         # Plotting
 
@@ -73,7 +73,7 @@ def main():
 
         x_ref = np.append(z_ref, np.zeros((4, z_ref.shape[1])), axis=0)
         timesteps = x_ref.shape[1]
-        x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=False)
+        x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=True)
         np.savez('optimal_trajectory.npz', x_gen=x_gen, u_gen=u_gen)
 
         # Plotting

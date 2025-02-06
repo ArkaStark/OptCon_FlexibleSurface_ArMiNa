@@ -68,7 +68,7 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
         x_update[:,:] = x_trajectory
         u_update[:,:] = u_trajectory
         for t in range(horizon-1):
-            u_update[:,t] = u_trajectory[:,t] + (Kt[:,:,t] @ (x_update[:,t] - x_trajectory[:,t]) + sigma_t[:,t]) * step_size
+            u_update[:,t] = u_trajectory[:,t] + Kt[:,:,t] @ (x_update[:,t] - x_trajectory[:,t]) + sigma_t[:,t] * step_size
             x_update[:,t+1] = np.array(x_next(x_update[:,t], u_update[:,t])).flatten()
 
         J_temp = cost(x_update, u_update, x_reference, u_reference, Qt, Rt, QT)
@@ -100,7 +100,7 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
    
         for j in range(resolution):
             for t in range(horizon-1):
-                u_temp_sec[:,t,j] = u_trajectory[:,t] + (Kt[:,:,t] @ (x_temp_sec[:,t,j] - x_trajectory[:,t]) + sigma_t[:,t]) * gamma[j]
+                u_temp_sec[:,t,j] = u_trajectory[:,t] + Kt[:,:,t] @ (x_temp_sec[:,t,j] - x_trajectory[:,t]) + sigma_t[:,t] * gamma[j]
                 x_temp_sec[:,t+1,j] = np.array(x_next(x_temp_sec[:,t,j], u_temp_sec[:,t,j])).flatten()
                 
             J_plot[j] = cost(x_temp_sec[:,:,j], u_temp_sec[:,:,j], x_reference, u_reference, Qt, Rt, QT)
