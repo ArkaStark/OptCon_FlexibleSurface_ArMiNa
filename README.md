@@ -10,19 +10,19 @@ This project focuses on the optimal trajectory generation and control of an actu
 ### tasks.py
 In this file the simulation timestep and the delta value for discretization can be edited.
 The task to be run can be set from the variable task_to_run writing a number 1 to 4.
-If the plot for Armijo line search is needed put Armijo solver = True , otherwise a constant stepsize = 1 will be used. 
+If the plot for Armijo line search is needed put Armijo solver = True , otherwise a constant stepsize = 0.1 will be used. 
 
 ### armijo.py
 this file implements the line search following the Armijo algorithm. 
 
 ### equilibrium_pts.py
-this is the file in which the equilibrium points are computed, starting from the system dynamics.
+this is the file in which the equilibrium points are computed, starting from the system dynamics. We input the z_init as the initial guess for positions and u2, u4 and find the z equilibrium points for the corresponding forces.
 
 ### cost_fn.py
 this funciton sets the LQR cost function terms and it returns the cost.
 
 ### flexible_dyn.py
-in this file are implemented the parameters, the discretization, system matrices A and B. 
+in this file are implemented the system dynamics (plant model) using both symbolic and numerical computation and returns the next state or gradients. 
 
 ### linear_quadratic_regulator.py 
 in this file is implemented the LQR algorithm for task 3 requirements.
