@@ -6,8 +6,11 @@ from flexible_dyn import grad_xu_lambda
 from flexible_dyn import x_next_lambda as dyn_lambda
 from cost_fn import cost
 from armijo import armijo
+from trajectory import plot_opt_trajectory
 
-def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=False):
+def noc(x_ref, u_ref, timesteps=100, armijo_solver=False):
+
+    plot_intermediate_traj = False
     
     TT = timesteps
     max_iter = 300
@@ -21,17 +24,16 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
     K_star = np.zeros((nu, ns, TT-1, max_iter))
     sigma_star = np.zeros((nu, TT-1, max_iter))
     del_u = np.zeros((nu, TT-1, max_iter))
+    norm_delta_u = np.zeros(max_iter)
 
     lamb = np.zeros((ns, TT))
-    grad_J_u = np.zeros((nu, TT, max_iter))
+    grad_J_u = np.zeros((nu, TT-1, max_iter))
 
     A = np.zeros((ns, ns, TT-1))
     B = np.zeros((ns, nu, TT-1))
 
     Qt = 10*np.eye(ns)
-
-    Rt = 1e-3*np.ones((nu, nu)) + 1e-4*np.eye(nu)
-
+    Rt = 1e-4*np.eye(nu)
     St = np.zeros((nu, ns))
 
     x_next = dyn_lambda()
@@ -40,6 +42,8 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
 
     A[:,:,-1] = grad_x(x_ref[:,TT-1],u_ref[:,TT-1])
     B[:,:,-1] = grad_u(x_ref[:,TT-1],u_ref[:,TT-1])
+    # print("A:", A[:, :, -1])
+    # print("B: ", B[:, :, -1])
     # QT = ctrl.dare(A[:,:,-1], B[:,:,-1], Qt, Rt)[0]
     QT = 10*np.eye(ns)
     # print("QT: ", QT)
@@ -57,12 +61,12 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
         l[k] = cost(x_opt[:, :, k], u_opt[:, :, k], x_ref, u_ref, Qt, Rt, QT)
 
         # Gradient norm stopping criteria
-        if k <= 1:
+        if k < 1:
             print(f"\nIteration: {k} \tCost: {l[k]}")
         else: 
-            norm_delta_u =  np.linalg.norm(del_u[:,:,k-1])
-            print(f"\nIteration: {k} \tCost: {l[k]}\tCost reduction: {l[k] - l[k-1]}\tDelta_u Norm: {norm_delta_u}")
-            if norm_delta_u < 1e-3:
+            norm_delta_u[k] =  np.linalg.norm(del_u[:,:,k-1])
+            print(f"\nIteration: {k} \tCost: {l[k]}\tCost reduction: {l[k] - l[k-1]}\tDelta_u Norm: {norm_delta_u[k]}")
+            if norm_delta_u[k] < 1e-3:
                 break
 
         # Initialization of x0 for the next iteration
@@ -73,13 +77,10 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
             B[:,:,t] = grad_u(x_opt[:,t,k], u_opt[:,t,k])
 
         K_star[:,:,:,k], sigma_star[:,:,k], del_u[:,:,k] = affine_lqr(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref, A, B, Qt, Rt, St, QT)
+
         # Compute the step size
         if armijo_solver==True and k>0:
-            print("TODO")
-
-            ########## Solve the costate equation [S20C5]
-            # Compute the effects of the inputs evolution on cost (rt)
-            # and on dynamics (B*Lambda)
+            print("Running Armijo...")
             qT = (QT @ (x_opt[:,-1,k] - x_ref[:,-1]))
             lamb[:,-1] = qT
             for t in reversed(range(TT-1)):
@@ -88,19 +89,23 @@ def newton_optimal_control(x_ref, u_ref, timesteps=100, task=1, armijo_solver=Fa
                 lamb[:,t] = A[:,:,t].T @ lamb[:,t+1] + qt
                 grad_J_u[:,t,k] = B[:,:,t].T @ lamb[:,t+1] + rt
             
-            gamma = armijo(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref,
-                            del_u[:,:,k], grad_J_u[:,:,k], l[k], K_star[:,:,:,k], sigma_star[:,:,k],
-                            k)
+            gamma = armijo(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref, 
+                                  del_u[:,:,k], grad_J_u[:,:,k], l[k], K_star[:,:,:,k], sigma_star[:,:,k], Qt, Rt, QT, k, plot=True)
+            # print('gamma:',gamma)
         else:
-            gamma = 1
+            gamma = 0.1
+            print('selected step_size:', gamma)
 
         # Compute the x_opt and u_opt for the next iteration
         for t in range(TT-1):
             u_opt[:,t,k+1] = u_opt[:,t,k] + K_star[:,:,t,k] @ (x_opt[:, t, k+1] - x_opt[:, t, k]) + gamma * sigma_star[:,t,k]
             x_opt[:,t+1,k+1] = np.array(x_next(x_opt[:,t,k+1], u_opt[:,t,k+1])).flatten()
 
+        if plot_intermediate_traj and k%3==0:
+            plot_opt_trajectory(x_opt[:,:,k], u_opt[:,:,k], x_ref, u_ref, t_f=TT, dt=1)
+
     print(f'Algorithm Ended at {k}th iteration')
-    return x_opt[:,:,k], u_opt[:,:,k], l
+    return x_opt[:,:,k], u_opt[:,:,k], l, norm_delta_u
 
         
 def affine_lqr(x_opt, x_ref, u_opt, u_ref, A, B, Qt, Rt, St, QT):

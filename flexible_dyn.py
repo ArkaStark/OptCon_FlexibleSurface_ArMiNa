@@ -5,18 +5,7 @@ import pickle
 dt = 1e-4
 
 def flexible_surface_dynamics(x, u):
-    """
-    Compute the next state of the flexible surface system using discrete-time dynamics.
-
-    Parameters:
-    - x: State vector [z1, z2, z3, z4, z1_dot, z2_dot, z3_dot, z4_dot].
-    - u: Input vector [u2, u4].
-    - params: Dictionary containing model parameters (alpha, c, m, d, L_ij, neighbors).
-    - dt: Time step for discretization.
-
-    Returns:
-    - x_next: Next state vector.
-    """
+    
     # Parameter set 2
     alpha = 128*0.2
     c = 0.1
@@ -230,7 +219,7 @@ def grad_wrt_xu(x, u, recompute=False):
     dfu = grad_wrt_u(x[:4], x[4:], u)
     return np.array(dfx, dtype=float), np.array(dfu, dtype=float)
 
-# print(grad_wrt_xu([0, 0, 0, 0, 0, 0, 0, 0], [100, 100], recompute=True)[0][4:,:4])
+# print(grad_wrt_xu([0, 0, 0, 0, 0, 0, 0, 0], [100, 100], recompute=False)[1].shape)
 
 def grad_xu_lambda(recompute=False):
     if recompute:
