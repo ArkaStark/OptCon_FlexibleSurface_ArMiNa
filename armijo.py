@@ -4,27 +4,7 @@ import matplotlib.pyplot as plt
 from flexible_dyn import x_next_lambda as dyn_lambda
 from cost_fn import cost
 
-def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ, J, Kt, sigma_t, Qt, Rt, QT, arm_max_iter=20, step_size_0=1, c = 0.5, beta = 0.7, plot = False):
-    """
-    Perform the Armijo backtracking line search to find an appropriate step size for the optimization.
-
-    Args:
-        x_trajectory (ndarray): Current state trajectory.
-        x_reference (ndarray): Reference state trajectory.
-        u_trajectory (ndarray): Current control trajectory.
-        u_reference (ndarray): Reference control trajectory.
-        delta_u (ndarray): Control update.
-        gradJ (ndarray): Gradient of the cost function.
-        J (float): Current cost function value.
-        Kt (ndarray): Gain matrix for feedback control.
-        sigma_t (ndarray): Scaling factor for the step size.
-        iteration (int): Current iteration number.
-        task (int, optional): Task identifier (default is 1).
-        step_size_0 (float, optional): Initial step size for the search (default is 0.1).
-
-    Returns:
-        float: The step size selected by the Armijo method.
-    """
+def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ, J, Kt, sigma_t, Qt, Rt, QT, iter, arm_max_iter=5, step_size_0=1, c = 0.5, beta = 0.7, plot = False):
 
     x_next = dyn_lambda()
     
@@ -33,12 +13,6 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
 
     # resolution for plotting the cost function
     resolution = 20   
-    
-    ## Initialize the following variables:
-    #  -    step_size: gamma that is considered at the i-th iteration
-    #  -    gamma: from 1 to resolution, used to generate the plots
-    #  -    step_sizes: vector of all the step_sizes evaluated until the i-th iteration
-    #  -    costs_armijo: vector of the costs of the function evaluated until the i-th iteration
     
     step_size = step_size_0
     gamma = np.linspace(0, 1, resolution)
@@ -53,16 +27,9 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
 
     descent = 0
     for t in range(horizon-1):
-        # print(f'gradJ = {gradJ[:,t]}')
-        # print(f'delta_u = {delta_u[:,t]}')
-        # print(gradJ[:,t].shape)
-        # print(delta_u[:,t].shape)
-        # print(gradJ[:,t].T @ delta_u[:,t])
         descent = descent + gradJ[:,t].T @ delta_u[:,t]
-        # descent = descent - gradJ[:,t].T @ gradJ[:,t]
-        # descent = descent - delta_u[:,t].T @ delta_u[:,t]
 
-    print(f'descent = {descent}')
+    #print(f'descent = {descent}')
 
     for i in range(arm_max_iter-1):
         x_update[:,:] = x_trajectory
@@ -81,14 +48,15 @@ def armijo(x_trajectory, x_reference, u_trajectory, u_reference, delta_u, gradJ,
             step_size = beta * step_size
             if i == arm_max_iter-2:
                 print(f'Armijo method did not converge in {arm_max_iter} iterations')
-                step_size = 0.001
+                step_size = 0.1
+                print(f'Selected step_size = {step_size}')
                 break
 
         else:
             print(f'Selected Armijo step_size = {step_size}')
             break    
 
-    if plot == True: #and ((iteration <= Arm_plot_up_to_iter_k)or(iteration >= Arm_plot_from_iter_k_to_end ))  and iteration!=0:
+    if plot == True and iter%3==1:
         # Armijo Plot
         x_temp_sec = np.zeros((x_size, horizon, resolution))
         u_temp_sec = np.zeros((u_size, horizon, resolution))

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+
 from flexible_dyn import x_next_lambda as dyn_lambda
 
 def animate(x0, u, frames=100):

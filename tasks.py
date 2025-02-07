@@ -14,7 +14,7 @@ def main():
     tf = 3
     dt = 1e-4
 
-    tasks_to_run = [1]
+    tasks_to_run = [1, 2, 3, 4]
 
     if 1 in tasks_to_run:
         print ("\n\n\t TASK 1 \n\n")
@@ -38,14 +38,22 @@ def main():
         x_ref = np.append(z_ref, np.zeros((4, z_ref.shape[1])), axis=0)
 
         timesteps = x_ref.shape[1]
-        x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=True)
+        x_gen, u_gen, l, des_dir = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=True)
         
         # Plotting
 
+        #Cost evolution
         plt.semilogy(l)
         plt.xlabel('Iteration $k$', fontsize=12)
         plt.ylabel(r'$J(u^k)$', fontsize=12)
         plt.title('Cost Evolution (Semi-Logarithmic Scale)', fontsize=12)
+        plt.show()
+
+        #Descent direction evotuion
+        plt.semilogy(des_dir[1:])
+        plt.xlabel('Iteration $k$', fontsize=12)
+        plt.ylabel(r'$\|\Delta u_k\|$', fontsize=12)
+        plt.title('Descent Direction Evolution (Semi-Logarithmic Scale)', fontsize=12)
         plt.show()
 
         traj.plot_opt_trajectory(x_gen, u_gen, x_ref, u_ref, t_f=tf, dt=dt)
@@ -73,15 +81,23 @@ def main():
 
         x_ref = np.append(z_ref, np.zeros((4, z_ref.shape[1])), axis=0)
         timesteps = x_ref.shape[1]
-        x_gen, u_gen, l = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=True)
+        x_gen, u_gen, l, des_dir = noc(x_ref, u_ref, timesteps=timesteps, armijo_solver=True)
         np.savez('optimal_trajectory.npz', x_gen=x_gen, u_gen=u_gen)
 
         # Plotting
 
+        #Cost evolution
         plt.semilogy(l)
         plt.xlabel('Iteration $k$', fontsize=12)
         plt.ylabel(r'$J(u^k)$', fontsize=12)
         plt.title('Cost Evolution (Semi-Logarithmic Scale)', fontsize=12)
+        plt.show()
+
+        #Descent direction evotuion
+        plt.semilogy(des_dir[1:])
+        plt.xlabel('Iteration $k$', fontsize=12)
+        plt.ylabel(r'$\|\Delta u_k\|$', fontsize=12)
+        plt.title('Descent Direction Evolution (Semi-Logarithmic Scale)', fontsize=12)
         plt.show()
 
         traj.plot_opt_trajectory(x_gen, u_gen, x_ref, u_ref, t_f=tf, dt=dt)

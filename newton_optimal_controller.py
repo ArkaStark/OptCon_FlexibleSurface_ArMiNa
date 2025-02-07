@@ -24,6 +24,7 @@ def noc(x_ref, u_ref, timesteps=100, armijo_solver=False):
     K_star = np.zeros((nu, ns, TT-1, max_iter))
     sigma_star = np.zeros((nu, TT-1, max_iter))
     del_u = np.zeros((nu, TT-1, max_iter))
+    norm_delta_u = np.zeros(max_iter)
 
     lamb = np.zeros((ns, TT))
     grad_J_u = np.zeros((nu, TT-1, max_iter))
@@ -63,9 +64,9 @@ def noc(x_ref, u_ref, timesteps=100, armijo_solver=False):
         if k < 1:
             print(f"\nIteration: {k} \tCost: {l[k]}")
         else: 
-            norm_delta_u =  np.linalg.norm(del_u[:,:,k-1])
-            print(f"\nIteration: {k} \tCost: {l[k]}\tCost reduction: {l[k] - l[k-1]}\tDelta_u Norm: {norm_delta_u}")
-            if norm_delta_u < 1:
+            norm_delta_u[k] =  np.linalg.norm(del_u[:,:,k-1])
+            print(f"\nIteration: {k} \tCost: {l[k]}\tCost reduction: {l[k] - l[k-1]}\tDelta_u Norm: {norm_delta_u[k]}")
+            if norm_delta_u[k] < 1e-3:
                 break
 
         # Initialization of x0 for the next iteration
@@ -89,10 +90,11 @@ def noc(x_ref, u_ref, timesteps=100, armijo_solver=False):
                 grad_J_u[:,t,k] = B[:,:,t].T @ lamb[:,t+1] + rt
             
             gamma = armijo(x_opt[:,:,k], x_ref, u_opt[:,:,k], u_ref, 
-                                  del_u[:,:,k], grad_J_u[:,:,k], l[k], K_star[:,:,:,k], sigma_star[:,:,k], Qt, Rt, QT, plot=True)
-            print('gamma:',gamma)
+                                  del_u[:,:,k], grad_J_u[:,:,k], l[k], K_star[:,:,:,k], sigma_star[:,:,k], Qt, Rt, QT, k, plot=True)
+            # print('gamma:',gamma)
         else:
             gamma = 0.1
+            print('selected step_size:', gamma)
 
         # Compute the x_opt and u_opt for the next iteration
         for t in range(TT-1):
@@ -103,7 +105,7 @@ def noc(x_ref, u_ref, timesteps=100, armijo_solver=False):
             plot_opt_trajectory(x_opt[:,:,k], u_opt[:,:,k], x_ref, u_ref, t_f=TT, dt=1)
 
     print(f'Algorithm Ended at {k}th iteration')
-    return x_opt[:,:,k], u_opt[:,:,k], l
+    return x_opt[:,:,k], u_opt[:,:,k], l, norm_delta_u
 
         
 def affine_lqr(x_opt, x_ref, u_opt, u_ref, A, B, Qt, Rt, St, QT):

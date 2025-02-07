@@ -5,18 +5,7 @@ import pickle
 dt = 1e-4
 
 def flexible_surface_dynamics(x, u):
-    """
-    Compute the next state of the flexible surface system using discrete-time dynamics.
-
-    Parameters:
-    - x: State vector [z1, z2, z3, z4, z1_dot, z2_dot, z3_dot, z4_dot].
-    - u: Input vector [u2, u4].
-    - params: Dictionary containing model parameters (alpha, c, m, d, L_ij, neighbors).
-    - dt: Time step for discretization.
-
-    Returns:
-    - x_next: Next state vector.
-    """
+    
     # Parameter set 2
     alpha = 128*0.2
     c = 0.1
