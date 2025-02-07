@@ -35,7 +35,7 @@ in this file are implemented the step desired curve for task 1 and a smooth traj
 
 ### animation.py
 
-This script generates an animation of the flexible surface executing the optimized trajectory.
+This script generates an animation of the flexible surface executing the optimized trajectory, as requested in task 5.
 Uses matplotlib.animation to visualize the movement of the surface points over time.
 Can be tested by running the test() function inside the script.
 
